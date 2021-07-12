@@ -1,0 +1,175 @@
+package com.broker.jobs;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.broker.bo.OrderEvent;
+import com.broker.dao.ConnectionFactory;
+import com.broker.utils.Secret;
+import net.minidev.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.sql.*;
+import java.util.HashMap;
+
+@Component
+public class EveryDayJob implements ApplicationContextAware {
+
+    private static Logger logger = LoggerFactory.getLogger(EveryDayJob.class);
+
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+
+    @Scheduled(cron = "0 0 1 * * ?")
+    public void syncData() {
+
+        syncMember();
+
+        try {
+            Thread.sleep(10000L);
+        } catch (InterruptedException e) {
+            logger.error("sync Data temp error", e);
+        }
+
+        syncOrder();
+    }
+
+    public void syncOrder() {
+
+        restTemplate = new RestTemplate();
+        String url = "http://api.haidushutong.com/api-web/order/list?sign=" + Secret.sign();
+        ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
+        Result<OrderDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<OrderDO>>(){});
+        System.out.println(JSON.toJSONString(result));
+
+        try {
+            for (OrderDO orderDO : result.getData()) {
+                PreparedStatement statement = ConnectionFactory.getQueryMemberStatement();
+                statement.setString(1, orderDO.getMemberId());
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    long brokerId = resultSet.getLong("pid");
+                    OrderEvent orderEvent = new OrderEvent(this);
+                    orderEvent.setId(Long.valueOf(orderDO.getOrderId()));
+                    orderEvent.setBrokerId(brokerId);
+                    orderEvent.setOrderAmountTotal(new BigDecimal(orderDO.getOrderAmountTotal()));
+                    orderEvent.setType("haidujiaoyu");
+
+                    PreparedStatement countStatement = ConnectionFactory.getCountOrderStatement();
+                    countStatement.setString(1, orderDO.getMemberId());
+                    resultSet = statement.executeQuery();
+                    if (resultSet.next()) {
+                        orderEvent.setRenewal(resultSet.getInt(1) > 0);
+                    }
+                    applicationEventPublisher.publishEvent(orderEvent);
+                } else {
+                    logger.error("order not belong anyone:{}", JSON.toJSONString(orderDO));
+                }
+                insertOrder(orderDO);
+            }
+
+        } catch (SQLException e) {
+            logger.error("sync order error", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        new EveryDayJob().syncOrder();
+    }
+
+    public void syncMember() {
+        restTemplate = new RestTemplate();
+        String url = "http://api.haidushutong.com/api-web/member/list?sign=" + Secret.sign();
+        Result<MemberDO> result = restTemplate.getForObject(url, Result.class, new HashMap<>());
+
+        System.out.println(JSON.toJSONString(result));
+        try {
+            for (MemberDO memberDO : result.getData()) {
+                insertMember(memberDO);
+            }
+
+        } catch (SQLException e) {
+            logger.error("sync member error", e);
+        }
+    }
+
+
+    private void insertOrder(OrderDO orderDO) throws SQLException {
+        PreparedStatement preparedStatement = ConnectionFactory.getInsertOrderStatement();
+        preparedStatement.setString(1, orderDO.getAddress());
+        preparedStatement.setString(2, orderDO.getAddressId());
+        preparedStatement.setString(3, orderDO.getCreateDate());
+        preparedStatement.setString(4, orderDO.getDeliveryDate());
+        preparedStatement.setString(5, orderDO.getDiscountAmount());
+        preparedStatement.setString(6, orderDO.getMemberId());
+        preparedStatement.setString(7, orderDO.getMerchantId());
+        preparedStatement.setString(8, orderDO.getMerchantName());
+        preparedStatement.setString(9, orderDO.getOrderAmountTotal());
+        preparedStatement.setString(10, orderDO.getOrderId());
+        preparedStatement.setString(11, orderDO.getOrderStatus());
+        preparedStatement.setString(12, orderDO.getOrderTotalId());
+        preparedStatement.setString(13, orderDO.getOutTradeNo());
+        preparedStatement.setString(14, orderDO.getPayChannel());
+        preparedStatement.setString(15, orderDO.getPaymentDate());
+        preparedStatement.setString(16, orderDO.getPhone());
+        preparedStatement.setString(17, orderDO.getProductAmountTotal());
+        preparedStatement.setString(18, orderDO.getRecipient());
+        preparedStatement.setString(19, orderDO.getRecipientPhone());
+        preparedStatement.setString(20, orderDO.getRemark());
+        preparedStatement.setString(21, orderDO.getTrackingNo());
+        preparedStatement.setString(22, orderDO.getTransactionDate());
+        preparedStatement.execute();
+    }
+
+    private void insertMember(MemberDO memberDO) throws SQLException {
+        PreparedStatement preparedStatement = ConnectionFactory.getInsertMemberStatement();
+        preparedStatement.setString(1, memberDO.getCardVip());
+        preparedStatement.setString(2, memberDO.getCity());
+        preparedStatement.setString(3, memberDO.getClassNo());
+        preparedStatement.setString(4, memberDO.getCreatedDate());
+        preparedStatement.setString(5, memberDO.getGender());
+        preparedStatement.setString(6, memberDO.getGetWeekCard());
+        preparedStatement.setString(7, memberDO.getGrade());
+        preparedStatement.setString(8, memberDO.getGradeId());
+        preparedStatement.setString(9, memberDO.getHeadIcon());
+        preparedStatement.setString(10, memberDO.getMemberId());
+        preparedStatement.setString(11, memberDO.getName());
+        preparedStatement.setString(12, memberDO.getNic());
+        preparedStatement.setString(13, memberDO.getPassword());
+        preparedStatement.setString(14, memberDO.getPhone());
+        preparedStatement.setString(15, memberDO.getPid());
+        preparedStatement.setString(16, memberDO.getProvince());
+        preparedStatement.setString(17, memberDO.getPurchasedCard());
+        preparedStatement.setString(18, memberDO.getRegion());
+        preparedStatement.setString(19, memberDO.getSchoolId());
+        preparedStatement.setString(20, memberDO.getSchoolName());
+        preparedStatement.setString(21, memberDO.getShareType());
+        preparedStatement.setString(22, memberDO.getStartDate());
+        preparedStatement.setString(23, memberDO.getStopDate());
+        preparedStatement.setString(24, memberDO.getUnionId());
+        preparedStatement.setString(25, memberDO.getUserId());
+        preparedStatement.setString(26, memberDO.getVipType());
+        preparedStatement.execute();
+    }
+
+    ApplicationContext applicationContext;
+
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+}
