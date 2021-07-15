@@ -31,15 +31,15 @@ public class BrokerController {
     }
 
     @RequestMapping("/register")
-    public String register() {
+    public void register(@RequestBody Broker broker) {
 
-        return "sssssssssssssss";
+        brokerService.register(broker);
     }
 
     @RequestMapping("/login")
-    public String login() {
+    public String login(@RequestParam("phone") String phone, @RequestParam("password") String password) {
 
-        return "sssssssssssssss";
+        return brokerService.login(phone, password);
     }
 
     @RequestMapping("/{phone}")

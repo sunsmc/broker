@@ -18,6 +18,8 @@ public class ConnectionFactory {
     private static PreparedStatement insertMemberStatement;
     private static PreparedStatement initBrokerStatement;
     private static PreparedStatement updateOrderStatement;
+    private static PreparedStatement queryBrokerStatement;
+    private static PreparedStatement insertBrokerStatement;
 
     private static String url = "jdbc:mysql://192.168.85.13:3306/brokers?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static String user = "root";
@@ -36,28 +38,32 @@ public class ConnectionFactory {
             memberConn = DriverManager.getConnection(url, user, pwd);
             brokerConn = DriverManager.getConnection(url, user, pwd);
 
+            //member
             String queryMember = "select pid from member where member_id = ? ";
             queryMemberStatement = memberConn.prepareStatement(queryMember);
-
-            String countOrder = "select count(*) from order where member_id = ? ";
-            countOrderStatement = orderConn.prepareStatement(countOrder);
-
             String memberSql = "insert into member (card_vip,city,class_no,created_date,gender,get_week_card,grade,grade_id,head_icon,member_id," +
                     "name,nic,password,phone,pid,province,purchased_card,region,school_id,school_name,share_type,start_date,stop_date,union_id,user_id,vip_type) " +
                     "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             insertMemberStatement = memberConn.prepareStatement(memberSql);
 
+            //order
             String orderSql = "insert into `order` (address,address_id,create_date,delivery_date,discount_amount,member_id,merchant_id,merchant_name," +
                     "order_amount_total,order_id,order_status,order_total_id,out_trade_no,pay_channel,payment_date,phone,product_amount_total," +
                     "recipient,recipient_phone,remark,tracking_no,transaction_date) " +
                     "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             insertOrderStatement = orderConn.prepareStatement(orderSql);
-
-            String sql = "select id,name,mobile,account,parent_id,level,code,order_nums,sub_order_nums,income from broker";
-            initBrokerStatement = orderConn.prepareStatement(sql);
-
+            String countOrder = "select count(*) from order where member_id = ? ";
+            countOrderStatement = orderConn.prepareStatement(countOrder);
             String updateOrder = "update broker set order_nums=?,level=?,income=? where id=?";
             updateOrderStatement = orderConn.prepareStatement(updateOrder);
+
+            //broker
+            String sql = "select id,name,mobile,account,parent_id,level,code,order_nums,sub_order_nums,income from broker";
+            initBrokerStatement = orderConn.prepareStatement(sql);
+            String queryBroker = "select * from broker where phone=? ";
+            queryBrokerStatement = brokerConn.prepareStatement(queryBroker);
+            String insertBroker = "insert into broker (name,mobile,account,password,referrer_code,parent_id) values (?,?,?,?,?,?)";
+            insertBrokerStatement = brokerConn.prepareStatement(insertBroker);
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -66,62 +72,44 @@ public class ConnectionFactory {
     }
 
     public static PreparedStatement getQueryMemberStatement() {
-        try {
-            queryMemberStatement.clearParameters();
-            return queryMemberStatement;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return queryMemberStatement;
-        }
+        return getPreparedStatement(queryMemberStatement);
     }
 
     public static PreparedStatement getCountOrderStatement() {
-        try {
-            countOrderStatement.clearParameters();
-            return countOrderStatement;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return countOrderStatement;
-        }
+        return getPreparedStatement(countOrderStatement);
     }
 
     public static PreparedStatement getInsertOrderStatement() {
-        try {
-            insertOrderStatement.clearParameters();
-            return insertOrderStatement;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return insertOrderStatement;
-        }
+        return getPreparedStatement(insertOrderStatement);
     }
 
     public static PreparedStatement getInsertMemberStatement() {
-        try {
-            insertMemberStatement.clearParameters();
-            return insertMemberStatement;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return insertMemberStatement;
-        }
+        return getPreparedStatement(insertMemberStatement);
     }
 
     public static PreparedStatement getInitBrokerStatement() {
-        try {
-            initBrokerStatement.clearParameters();
-            return initBrokerStatement;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return initBrokerStatement;
-        }
+        return getPreparedStatement(initBrokerStatement);
     }
 
     public static PreparedStatement getUpdateOrderStatement() {
+        return getPreparedStatement(updateOrderStatement);
+    }
+
+    public static PreparedStatement getQueryBrokerStatement() {
+        return getPreparedStatement(queryBrokerStatement);
+    }
+
+    public static PreparedStatement getInsertBrokerStatement() {
+        return getPreparedStatement(insertBrokerStatement);
+    }
+
+    private static PreparedStatement getPreparedStatement(PreparedStatement preparedStatement) {
         try {
-            updateOrderStatement.clearParameters();
-            return updateOrderStatement;
+            preparedStatement.clearParameters();
+            return preparedStatement;
         } catch (SQLException e) {
             e.printStackTrace();
-            return updateOrderStatement;
+            return preparedStatement;
         }
     }
 }

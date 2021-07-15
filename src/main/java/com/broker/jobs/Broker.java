@@ -3,6 +3,7 @@ package com.broker.jobs;
 import com.broker.enums.Level;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Broker {
@@ -15,25 +16,26 @@ public class Broker {
     private String mobile;
     private String account;
     private Long parentId;
-    private Level level;
-    private String code;
+    private Level level = Level.ordinary;
+    private String referrerCode;
+    private String password;
     /**
      * advanced elements
      */
-    private List<Broker> children;
+    private List<Broker> children = new ArrayList<>();
     //>100
-    private Integer orderNums;
+    private Integer orderNums = 0;
     //3>120
-    private Integer subOrderNums;
+    private Integer subOrderNums = 0;
 
-    private BigDecimal income;
+    private BigDecimal income = BigDecimal.ZERO;
 
-    public String getCode() {
-        return code;
+    public String getReferrerCode() {
+        return referrerCode;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setReferrerCode(String referrerCode) {
+        this.referrerCode = referrerCode;
     }
 
     public String getName() {
@@ -114,5 +116,13 @@ public class Broker {
 
     public void setLevel(Level level) {
         this.level = level;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

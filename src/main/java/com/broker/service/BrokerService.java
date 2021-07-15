@@ -1,42 +1,42 @@
 package com.broker.service;
 
+import com.broker.dao.ConnectionFactory;
 import com.broker.jobs.Broker;
 import org.assertj.core.util.Lists;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class BrokerService {
 
-    public static Connection connection;
+    @Autowired
+    private CalculateService calculateService;
 
-    public BrokerService() {
-
+    public void register(Broker broker) {
         try {
-            Class.forName("mysql");
-            connection = DriverManager.getConnection(",", "", "");
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
+            PreparedStatement insertBrokerStatement = ConnectionFactory.getInsertBrokerStatement();
+            insertBrokerStatement.setString(1, broker.getName());
+            insertBrokerStatement.setString(2, broker.getMobile());
+            insertBrokerStatement.setString(3, broker.getAccount());
+            insertBrokerStatement.setString(4, broker.getPassword());
+            insertBrokerStatement.setString(5, broker.getReferrerCode());
+            insertBrokerStatement.setLong(6, broker.getParentId());
+            insertBrokerStatement.execute();
 
-    }
-
-    public void register(String name, String mobile, String account) {
-        Broker broker = new Broker();
-
-        String sql = "insert into broker (name,mobile,account) values (?,?,?)";
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, mobile);
-            preparedStatement.setString(3, account);
-            preparedStatement.execute();
-            preparedStatement.close();
+            if (broker.getParentId() == null) {
+                calculateService.brokers.add(broker);
+            } else {
+                for (Broker b : calculateService.brokers) {
+                    if (b.getId().equals(broker.getParentId())) {
+                        b.getChildren().add(broker);
+                        break;
+                    }
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -53,4 +53,21 @@ public class BrokerService {
         return Lists.newArrayList();
     }
 
+    public String login(String phone, String password) {
+
+        PreparedStatement queryBrokerStatement = ConnectionFactory.getQueryBrokerStatement();
+        try {
+            queryBrokerStatement.setString(1, phone);
+            ResultSet resultSet = queryBrokerStatement.executeQuery();
+            if (resultSet.next()) {
+                String pwd = resultSet.getString("password");
+                if (Objects.equals(password, pwd)) {
+                    return resultSet.getString("name");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

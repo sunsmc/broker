@@ -1,10 +1,11 @@
 package com.broker.service;
 
+import com.alibaba.fastjson.JSON;
 import com.broker.bo.OrderEvent;
 import com.broker.dao.ConnectionFactory;
 import com.broker.enums.Level;
 import com.broker.jobs.Broker;
-import com.broker.jobs.EveryDayJob;
+import org.assertj.core.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -47,7 +48,7 @@ public class CalculateService {
                 broker.setAccount(resultSet.getString("account"));
                 broker.setParentId(resultSet.getLong("parent_id"));
                 broker.setLevel(Level.valueOf(resultSet.getString("levels")));
-                broker.setCode(resultSet.getString("code"));
+                broker.setReferrerCode(resultSet.getString("code"));
                 broker.setOrderNums(resultSet.getInt("order_nums"));
                 broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
                 broker.setIncome(resultSet.getBigDecimal("income"));
@@ -76,7 +77,7 @@ public class CalculateService {
     public synchronized void addOrder(OrderEvent orderEvent) {
 
         brokersNeedUpdate.clear();
-        recursionBroker(brokers, orderEvent);
+        calculateIncomeAndUpgradeLevel(brokers, orderEvent);
         brokersNeedUpdate.forEach(broker -> {
             try {
                 PreparedStatement preparedStatement = ConnectionFactory.getUpdateOrderStatement();
@@ -85,7 +86,6 @@ public class CalculateService {
                 preparedStatement.setBigDecimal(3, broker.getIncome());
                 preparedStatement.setLong(4, broker.getId());
                 preparedStatement.execute();
-                preparedStatement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -93,7 +93,42 @@ public class CalculateService {
     }
 
 
-    private int recursionBroker(List<Broker> brokers, OrderEvent orderEvent) {
+    public static void main(String[] args) {
+        Broker a = new Broker();
+        a.setId(1L);
+        a.setOrderNums(99);
+        a.setSubOrderNums(0);
+        a.setLevel(Level.ordinary);
+
+        Broker b = new Broker();
+        b.setId(2L);
+        b.setOrderNums(0);
+        b.setSubOrderNums(0);
+        b.setLevel(Level.ordinary);
+
+        Broker c = new Broker();
+        c.setId(3L);
+        c.setOrderNums(0);
+        c.setSubOrderNums(0);
+        c.setLevel(Level.ordinary);
+
+        a.setChildren(Lists.newArrayList(b));
+        b.setChildren(Lists.newArrayList(c));
+
+
+        OrderEvent orderEvent = new OrderEvent("");
+        orderEvent.setBrokerId(3L);
+        orderEvent.setOrderAmountTotal(BigDecimal.valueOf(13232));
+        orderEvent.setType("haidujiaoyu");
+        orderEvent.setRenewal(false);
+        ArrayList<Broker> brokers = Lists.newArrayList(a);
+
+        new CalculateService().calculateIncomeAndUpgradeLevel(brokers,orderEvent);
+
+        System.out.println(JSON.toJSONString(brokers));
+    }
+
+    private int calculateIncomeAndUpgradeLevel(List<Broker> brokers, OrderEvent orderEvent) {
         if (CollectionUtils.isEmpty(brokers)) {
             return 0;
         }
@@ -105,7 +140,7 @@ public class CalculateService {
                 brokersNeedUpdate.add(broker);
                 return 1;
             } else {
-                int res = recursionBroker(broker.getChildren(), orderEvent);
+                int res = calculateIncomeAndUpgradeLevel(broker.getChildren(), orderEvent);
                 if (res > 0) {
                     broker.setSubOrderNums(broker.getSubOrderNums() + 1);
                     upgradeLevel(broker);
