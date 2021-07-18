@@ -20,6 +20,11 @@ public class ConnectionFactory {
     private static PreparedStatement updateOrderStatement;
     private static PreparedStatement queryBrokerStatement;
     private static PreparedStatement insertBrokerStatement;
+    private static PreparedStatement queryBrokerLimitStatement;
+    private static PreparedStatement countBrokerStatement;
+    private static PreparedStatement referrerStatement;
+    private static PreparedStatement queryBrokerByMobileLimitStatement;
+    private static PreparedStatement countBrokerByMobileStatement;
 
     private static String url = "jdbc:mysql://192.168.85.13:3306/brokers?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static String user = "root";
@@ -39,36 +44,53 @@ public class ConnectionFactory {
             brokerConn = DriverManager.getConnection(url, user, pwd);
 
             //member
-            String queryMember = "select pid from member where member_id = ? ";
-            queryMemberStatement = memberConn.prepareStatement(queryMember);
-            String memberSql = "insert into member (card_vip,city,class_no,created_date,gender,get_week_card,grade,grade_id,head_icon,member_id," +
+            queryMemberStatement = memberConn.prepareStatement("select pid from member where member_id = ? ");
+            insertMemberStatement = memberConn.prepareStatement("insert into member (card_vip,city,class_no,created_date,gender,get_week_card,grade,grade_id,head_icon,member_id," +
                     "name,nic,password,phone,pid,province,purchased_card,region,school_id,school_name,share_type,start_date,stop_date,union_id,user_id,vip_type) " +
-                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            insertMemberStatement = memberConn.prepareStatement(memberSql);
+                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
             //order
-            String orderSql = "insert into `order` (address,address_id,create_date,delivery_date,discount_amount,member_id,merchant_id,merchant_name," +
+            insertOrderStatement = orderConn.prepareStatement("insert into `order` (address,address_id,create_date,delivery_date,discount_amount,member_id,merchant_id,merchant_name," +
                     "order_amount_total,order_id,order_status,order_total_id,out_trade_no,pay_channel,payment_date,phone,product_amount_total," +
                     "recipient,recipient_phone,remark,tracking_no,transaction_date) " +
-                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            insertOrderStatement = orderConn.prepareStatement(orderSql);
-            String countOrder = "select count(*) from order where member_id = ? ";
-            countOrderStatement = orderConn.prepareStatement(countOrder);
-            String updateOrder = "update broker set order_nums=?,level=?,income=? where id=?";
-            updateOrderStatement = orderConn.prepareStatement(updateOrder);
+                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+            countOrderStatement = orderConn.prepareStatement("select count(*) from order where member_id = ? ");
+            updateOrderStatement = orderConn.prepareStatement("update broker set order_nums=?,level=?,income=? where id=?");
 
             //broker
-            String sql = "select id,name,mobile,account,parent_id,level,code,order_nums,sub_order_nums,income from broker";
-            initBrokerStatement = orderConn.prepareStatement(sql);
-            String queryBroker = "select * from broker where phone=? ";
-            queryBrokerStatement = brokerConn.prepareStatement(queryBroker);
-            String insertBroker = "insert into broker (name,mobile,account,password,referrer_code,parent_id) values (?,?,?,?,?,?)";
-            insertBrokerStatement = brokerConn.prepareStatement(insertBroker);
+            initBrokerStatement = brokerConn.prepareStatement("select * from broker");
+            queryBrokerStatement = brokerConn.prepareStatement("select * from broker where mobile=? ");
+            insertBrokerStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code,parent_id) values (?,?,?,?,?,?)");
+            queryBrokerLimitStatement = brokerConn.prepareStatement("select * from broker limit ?,?");
+            queryBrokerByMobileLimitStatement = brokerConn.prepareStatement("select * from broker where mobile like concat('%',?,'%') limit ?,?");
+            countBrokerStatement = brokerConn.prepareStatement("select count(*) from broker");
+            countBrokerByMobileStatement = brokerConn.prepareStatement("select count(*) from broker where mobile like concat('%',?,'%') ");
+            referrerStatement = brokerConn.prepareStatement("select * from broker where referrer_code = ?");
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
 
+    }
+
+    public static PreparedStatement getQueryBrokerByMobileLimitStatement() {
+        return getPreparedStatement(queryBrokerByMobileLimitStatement);
+    }
+
+    public static PreparedStatement getCountBrokerByMobileStatement() {
+        return getPreparedStatement(countBrokerByMobileStatement);
+    }
+
+    public static PreparedStatement getReferrerStatement() {
+        return getPreparedStatement(referrerStatement);
+    }
+
+    public static PreparedStatement getCountBrokerStatement() {
+        return getPreparedStatement(countBrokerStatement);
+    }
+
+    public static PreparedStatement getQueryBrokerLimitStatement() {
+        return getPreparedStatement(queryBrokerLimitStatement);
     }
 
     public static PreparedStatement getQueryMemberStatement() {

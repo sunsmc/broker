@@ -4,7 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.broker.bo.OrderEvent;
 import com.broker.dao.ConnectionFactory;
 import com.broker.enums.Level;
-import com.broker.jobs.Broker;
+import com.broker.enums.OrderType;
+import com.broker.bo.Broker;
 import org.assertj.core.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,9 @@ public class CalculateService {
      * 一级broker
      */
     List<Broker> brokers = new ArrayList<>();
+    /**
+     * temp list
+     */
     List<Broker> brokersNeedUpdate = new ArrayList<>();
 
 
@@ -47,8 +51,8 @@ public class CalculateService {
                 broker.setMobile(resultSet.getString("mobile"));
                 broker.setAccount(resultSet.getString("account"));
                 broker.setParentId(resultSet.getLong("parent_id"));
-                broker.setLevel(Level.valueOf(resultSet.getString("levels")));
-                broker.setReferrerCode(resultSet.getString("code"));
+                broker.setLevel(Level.valueOf(resultSet.getString("level")));
+                broker.setReferrerCode(resultSet.getString("referrer_code"));
                 broker.setOrderNums(resultSet.getInt("order_nums"));
                 broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
                 broker.setIncome(resultSet.getBigDecimal("income"));
@@ -119,11 +123,11 @@ public class CalculateService {
         OrderEvent orderEvent = new OrderEvent("");
         orderEvent.setBrokerId(3L);
         orderEvent.setOrderAmountTotal(BigDecimal.valueOf(13232));
-        orderEvent.setType("haidujiaoyu");
+        orderEvent.setType(OrderType.HAIDUJIAOYU.name());
         orderEvent.setRenewal(false);
         ArrayList<Broker> brokers = Lists.newArrayList(a);
 
-        new CalculateService().calculateIncomeAndUpgradeLevel(brokers,orderEvent);
+        new CalculateService().calculateIncomeAndUpgradeLevel(brokers, orderEvent);
 
         System.out.println(JSON.toJSONString(brokers));
     }
@@ -196,7 +200,7 @@ public class CalculateService {
 
     private BigDecimal getIncrement(Level level, OrderEvent orderEvent, int superior) {
 
-        if ("haidujiaoyu".equalsIgnoreCase(orderEvent.getType())) {
+        if (OrderType.HAIDUJIAOYU.name().equalsIgnoreCase(orderEvent.getType())) {
             if (orderEvent.isRenewal()) {
                 switch (superior) {
                     case 0:

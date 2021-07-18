@@ -2,10 +2,13 @@ package com.broker.jobs;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.broker.bo.MemberDO;
+import com.broker.bo.OrderDO;
 import com.broker.bo.OrderEvent;
+import com.broker.bo.Result;
 import com.broker.dao.ConnectionFactory;
+import com.broker.enums.OrderType;
 import com.broker.utils.Secret;
-import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -27,8 +30,8 @@ public class EveryDayJob implements ApplicationContextAware {
 
     private static Logger logger = LoggerFactory.getLogger(EveryDayJob.class);
 
-    @Autowired
-    private RestTemplate restTemplate;
+//    @Autowired
+    private RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
@@ -47,54 +50,12 @@ public class EveryDayJob implements ApplicationContextAware {
         syncOrder();
     }
 
-    public void syncOrder() {
-
-        restTemplate = new RestTemplate();
-        String url = "http://api.haidushutong.com/api-web/order/list?sign=" + Secret.sign();
-        ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
-        Result<OrderDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<OrderDO>>(){});
-        System.out.println(JSON.toJSONString(result));
-
-        try {
-            for (OrderDO orderDO : result.getData()) {
-                PreparedStatement statement = ConnectionFactory.getQueryMemberStatement();
-                statement.setString(1, orderDO.getMemberId());
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    long brokerId = resultSet.getLong("pid");
-                    OrderEvent orderEvent = new OrderEvent(this);
-                    orderEvent.setId(Long.valueOf(orderDO.getOrderId()));
-                    orderEvent.setBrokerId(brokerId);
-                    orderEvent.setOrderAmountTotal(new BigDecimal(orderDO.getOrderAmountTotal()));
-                    orderEvent.setType("haidujiaoyu");
-
-                    PreparedStatement countStatement = ConnectionFactory.getCountOrderStatement();
-                    countStatement.setString(1, orderDO.getMemberId());
-                    resultSet = statement.executeQuery();
-                    if (resultSet.next()) {
-                        orderEvent.setRenewal(resultSet.getInt(1) > 0);
-                    }
-                    applicationEventPublisher.publishEvent(orderEvent);
-                } else {
-                    logger.error("order not belong anyone:{}", JSON.toJSONString(orderDO));
-                }
-                insertOrder(orderDO);
-            }
-
-        } catch (SQLException e) {
-            logger.error("sync order error", e);
-        }
-    }
-
-    public static void main(String[] args) {
-        new EveryDayJob().syncOrder();
-    }
 
     public void syncMember() {
-        restTemplate = new RestTemplate();
         String url = "http://api.haidushutong.com/api-web/member/list?sign=" + Secret.sign();
-        Result<MemberDO> result = restTemplate.getForObject(url, Result.class, new HashMap<>());
-
+        ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
+        Result<MemberDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<MemberDO>>() {
+        });
         System.out.println(JSON.toJSONString(result));
         try {
             for (MemberDO memberDO : result.getData()) {
@@ -103,6 +64,50 @@ public class EveryDayJob implements ApplicationContextAware {
 
         } catch (SQLException e) {
             logger.error("sync member error", e);
+        }
+    }
+
+
+    public void syncOrder() {
+
+        String url = "http://api.haidushutong.com/api-web/order/list?sign=" + Secret.sign();
+        ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
+        Result<OrderDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<OrderDO>>() {
+        });
+        System.out.println(JSON.toJSONString(result));
+
+        try {
+            for (OrderDO orderDO : result.getData()) {
+
+                insertOrder(orderDO);
+
+                // order -> member -> broker
+                PreparedStatement queryMemberStatement = ConnectionFactory.getQueryMemberStatement();
+                queryMemberStatement.setString(1, orderDO.getMemberId());
+                ResultSet resultSet = queryMemberStatement.executeQuery();
+                if (!resultSet.next()) {
+                    logger.error("order not belong anyone:{}", JSON.toJSONString(orderDO));
+                    continue;
+                }
+
+                long brokerId = resultSet.getLong("pid");
+                OrderEvent orderEvent = new OrderEvent(this);
+                orderEvent.setId(Long.valueOf(orderDO.getOrderId()));
+                orderEvent.setBrokerId(brokerId);
+                orderEvent.setOrderAmountTotal(new BigDecimal(orderDO.getOrderAmountTotal()));
+                orderEvent.setType(OrderType.HAIDUJIAOYU.name());
+
+                PreparedStatement countStatement = ConnectionFactory.getCountOrderStatement();
+                countStatement.setString(1, orderDO.getMemberId());
+                resultSet = countStatement.executeQuery();
+                if (resultSet.next()) {
+                    orderEvent.setRenewal(resultSet.getInt(1) > 0);
+                }
+                applicationEventPublisher.publishEvent(orderEvent);
+            }
+
+        } catch (SQLException e) {
+            logger.error("sync order error", e);
         }
     }
 
