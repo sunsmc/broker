@@ -1,10 +1,17 @@
 package com.broker.controller;
 
-import com.broker.jobs.Broker;
+import com.broker.bo.Broker;
+import com.broker.bo.HttpResult;
 import com.broker.service.BrokerService;
+import com.broker.vo.BrokerVO;
+import com.sun.deploy.net.HttpResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,31 +27,39 @@ public class BrokerController {
     private BrokerService brokerService;
 
     @RequestMapping("/list")
-    public Map<String, Object> brokerList(@RequestParam("pageIndex") Integer pageIndex,
-                                          @RequestParam("pageSize") Integer pageSize) {
-
-        List<Broker> brokers = brokerService.getBrokers();
+    public HttpResult<Map<String, Object>> brokerList(@RequestParam("pageIndex") Integer pageIndex,
+                                                      @RequestParam("pageSize") Integer pageSize,
+                                                      @RequestParam(value = "mobile", required = false) String mobile) {
+        Pair<Integer, List<Broker>> pair;
+        if (StringUtils.isBlank(mobile)) {
+            pair = brokerService.getBrokers(pageSize, (pageIndex - 1) * pageSize);
+        } else {
+            pair = brokerService.searchBrokers(pageSize, (pageIndex - 1) * pageSize, mobile);
+        }
         Map<String, Object> result = new HashMap<>();
-        result.put("total", brokers.size());
-        result.put("list", brokers.stream().skip((pageIndex - 1) * pageSize).limit(pageSize).collect(toList()));
-        return result;
+        result.put("total", pair.getLeft());
+        result.put("list", pair.getRight());
+        return HttpResult.success(result);
+    }
+
+    @RequestMapping("/export")
+    public HttpResult<Void> export(HttpServletResponse httpResponse) {
+        return brokerService.export(httpResponse);
     }
 
     @RequestMapping("/register")
-    public void register(@RequestBody Broker broker) {
-
-        brokerService.register(broker);
+    public HttpResult<Void> register(@RequestBody BrokerVO brokerVO) {
+        return brokerService.register(brokerVO);
     }
 
     @RequestMapping("/login")
-    public String login(@RequestParam("phone") String phone, @RequestParam("password") String password) {
-
+    public HttpResult<Broker> login(@RequestParam("phone") String phone, @RequestParam("password") String password) {
         return brokerService.login(phone, password);
     }
 
-    @RequestMapping("/{phone}")
-    public String login(@PathVariable("phone") String phone) {
+    @RequestMapping("/qrcode/{phone}")
+    public HttpResult<Void> qrCode(@PathVariable("phone") String phone, HttpServletResponse httpResponse) {
 
-        return "fkdopdkfdpfkdp";
+        return brokerService.qrcode(phone, httpResponse);
     }
 }
