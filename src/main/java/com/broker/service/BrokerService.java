@@ -8,11 +8,9 @@ import com.broker.utils.ExcelUtil;
 import com.broker.utils.QrCodeUtils;
 import com.broker.vo.BrokerVO;
 import com.google.zxing.WriterException;
-import com.sun.deploy.net.HttpResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.assertj.core.util.Lists;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 public class BrokerService {
@@ -34,27 +32,33 @@ public class BrokerService {
     @Autowired
     private CalculateService calculateService;
 
+    private static final String nullParentReferrerCode = "1qaz@WSX";
+
     public HttpResult<Void> register(BrokerVO brokerVO) {
         try {
-            PreparedStatement referrerStatement = ConnectionFactory.getReferrerStatement();
-            referrerStatement.setString(1, brokerVO.getReferrerCode());
-            ResultSet resultSet = referrerStatement.executeQuery();
-            if (!resultSet.next()) {
-                return HttpResult.failure("没找到推荐人");
-            }
-            if (StringUtils.isBlank(brokerVO.getPassword())) {
-                return HttpResult.failure("密码为空");
+            if (StringUtils.isBlank(brokerVO.getReferrerCode())) {
+                return HttpResult.failure("请输入邀请码");
             }
             Broker broker = new Broker();
             BeanUtils.copyProperties(brokerVO, broker);
-            broker.setParentId(resultSet.getLong("parent_id"));
-
+            if (!Objects.equals(nullParentReferrerCode, brokerVO.getReferrerCode())) {
+                PreparedStatement referrerStatement = ConnectionFactory.getReferrerStatement();
+                referrerStatement.setString(1, brokerVO.getReferrerCode());
+                ResultSet resultSet = referrerStatement.executeQuery();
+                if (!resultSet.next()) {
+                    return HttpResult.failure("没找到推荐人");
+                }
+                if (StringUtils.isBlank(brokerVO.getPassword())) {
+                    return HttpResult.failure("密码为空");
+                }
+                broker.setParentId(resultSet.getLong("parent_id"));
+            }
             PreparedStatement insertBrokerStatement = ConnectionFactory.getInsertBrokerStatement();
             insertBrokerStatement.setString(1, broker.getName());
             insertBrokerStatement.setString(2, broker.getMobile());
             insertBrokerStatement.setString(3, broker.getAccount());
             insertBrokerStatement.setString(4, broker.getPassword());
-            insertBrokerStatement.setString(5, broker.getReferrerCode());
+            insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
             insertBrokerStatement.setLong(6, broker.getParentId());
             insertBrokerStatement.execute();
 
