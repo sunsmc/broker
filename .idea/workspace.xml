@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="e268be6c-2f5b-4732-9d08-6ff727917354" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/broker/bo/HttpResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/broker/bo/HttpResult.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/broker/service/BrokerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/broker/service/BrokerService.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CodeStyleSettingsInfer">
+    <option name="done" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="importAutomatically" value="true" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="ProjectCodeStyleSettingsMigration">
+    <option name="version" value="1" />
+  </component>
+  <component name="ProjectId" id="1vTPalbU4z0MWlKo4J9a8QOWjOX" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RequestMappingsPanelOrder0" value="0" />
+    <property name="RequestMappingsPanelOrder1" value="1" />
+    <property name="RequestMappingsPanelOrder2" value="2" />
+    <property name="RequestMappingsPanelWidth0" value="75" />
+    <property name="RequestMappingsPanelWidth1" value="75" />
+    <property name="RequestMappingsPanelWidth2" value="75" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="extract.method.default.visibility" value="private" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.broker.bo" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.BrokerApplication">
+    <configuration name="CalculateService" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.broker.service.CalculateService" />
+      <module name="broker" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.broker.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="QrCodeUtils" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.broker.utils.QrCodeUtils" />
+      <module name="broker" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.broker.utils.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Application" factoryName="Application">
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JUnit" factoryName="JUnit">
+      <option name="TEST_OBJECT" value="class" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BrokerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="broker" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.broker.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.broker.BrokerApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="TestNG">
+      <option name="TEST_OBJECT" value="CLASS" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.BrokerApplication" />
+        <item itemvalue="Application.QrCodeUtils" />
+        <item itemvalue="Application.CalculateService" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e268be6c-2f5b-4732-9d08-6ff727917354" name="Default" comment="" />
+      <created>1626181362112</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1626181362112</updated>
+      <workItem from="1626181367775" duration="8330000" />
+      <workItem from="1626583172825" duration="21465000" />
+      <workItem from="1626965806375" duration="3932000" />
+      <workItem from="1627096301766" duration="183000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1084" y="400" key="#com.intellij.ide.util.MemberChooser" timestamp="1626610136243">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1084" y="400" key="#com.intellij.ide.util.MemberChooser/0.0.2560.1400@0.0.2560.1400" timestamp="1626610136243" />
+    <state x="538" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1626587615343">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="538" y="0" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.2560.1400@0.0.2560.1400" timestamp="1626587615343" />
+    <state width="2514" height="355" key="GridCell.Tab.0.bottom" timestamp="1626970507733">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.0.bottom/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507733" />
+    <state width="2514" height="355" key="GridCell.Tab.0.center" timestamp="1626970507733">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.0.center/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507733" />
+    <state width="2514" height="355" key="GridCell.Tab.0.left" timestamp="1626970507733">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.0.left/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507733" />
+    <state width="2514" height="355" key="GridCell.Tab.0.right" timestamp="1626970507733">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.0.right/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507733" />
+    <state width="2514" height="355" key="GridCell.Tab.1.bottom" timestamp="1626970507734">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.1.bottom/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507734" />
+    <state width="2514" height="355" key="GridCell.Tab.1.center" timestamp="1626970507733">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.1.center/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507733" />
+    <state width="2514" height="355" key="GridCell.Tab.1.left" timestamp="1626970507733">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.1.left/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507733" />
+    <state width="2514" height="355" key="GridCell.Tab.1.right" timestamp="1626970507733">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state width="2514" height="355" key="GridCell.Tab.1.right/0.0.2560.1400@0.0.2560.1400" timestamp="1626970507733" />
+    <state x="759" y="273" key="SettingsEditor" timestamp="1626583192298">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="759" y="273" key="SettingsEditor/0.0.2560.1400@0.0.2560.1400" timestamp="1626583192298" />
+    <state x="1177" y="632" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1627096480445">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="1177" y="632" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.2560.1400@0.0.2560.1400" timestamp="1627096480445" />
+    <state x="830" y="435" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1626611333491">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="830" y="435" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.2560.1400@0.0.2560.1400" timestamp="1626611333491" />
+    <state x="956" y="433" width="647" height="534" key="find.popup" timestamp="1626605968121">
+      <screen x="0" y="0" width="2560" height="1400" />
+    </state>
+    <state x="956" y="433" width="647" height="534" key="find.popup/0.0.2560.1400@0.0.2560.1400" timestamp="1626605968121" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/broker/service/BrokerService.java</url>
+          <line>237</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/broker/service/BrokerService.java</url>
+          <line>38</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

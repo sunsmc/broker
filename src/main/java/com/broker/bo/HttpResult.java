@@ -28,7 +28,7 @@ public class HttpResult<T> {
 
     public static <T> HttpResult<T> failure(String msg) {
 
-        return build(HttpStatus.INTERNAL_SERVER_ERROR.value(), "failure", null);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR.value(), msg, null);
     }
 
     public static <T> HttpResult<T> build(Integer code, String msg, T data) {

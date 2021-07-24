@@ -262,12 +262,13 @@ public class BrokerService {
                 broker.setReferrerCode(resultSet.getString("referrer_code"));
                 broker.setIncome(resultSet.getBigDecimal("income"));
                 return HttpResult.success(broker);
+            } else {
+                return HttpResult.failure("用户不存在");
             }
         } catch (SQLException e) {
             e.printStackTrace();
             return HttpResult.failure(e.getMessage());
         }
-        return HttpResult.success();
     }
 
     public HttpResult<Void> qrcode(String phone, HttpServletResponse httpResponse) {
