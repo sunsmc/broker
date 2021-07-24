@@ -4,19 +4,15 @@ import com.broker.bo.Broker;
 import com.broker.bo.HttpResult;
 import com.broker.service.BrokerService;
 import com.broker.vo.BrokerVO;
-import com.sun.deploy.net.HttpResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
 
 @RestController
 @CrossOrigin

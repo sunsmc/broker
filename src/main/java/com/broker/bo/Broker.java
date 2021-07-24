@@ -34,4 +34,12 @@ public class Broker {
     private Integer subOrderNums = 0;
 
     private BigDecimal income = BigDecimal.ZERO;
+
+    private BigDecimal directIncome;
+    private BigDecimal firstIncome;
+    private BigDecimal secondIncome;
+    private BigDecimal teamIncome;
+    private BigDecimal shopIncome;
+    private BigDecimal researchIncome;
+
 }

@@ -27,13 +27,10 @@ public class ConnectionFactory {
     private static PreparedStatement countBrokerByMobileStatement;
 
     private static String url = "jdbc:mysql://192.168.85.13:3306/brokers?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+//    private static String url = "jdbc:mysql://localhost:3306/brokers?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static String user = "root";
     private static String pwd = "Caonima@123";
-
-    public static void main(String[] args) {
-
-        getCountOrderStatement();
-    }
+//    private static String pwd = "hutu1021";
 
     static {
 

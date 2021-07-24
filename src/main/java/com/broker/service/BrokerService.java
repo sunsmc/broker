@@ -1,8 +1,8 @@
 package com.broker.service;
 
 import com.broker.bo.HttpResult;
-import com.broker.dao.ConnectionFactory;
 import com.broker.bo.Broker;
+import com.broker.dao.ConnectionFactory;
 import com.broker.enums.Level;
 import com.broker.utils.ExcelUtil;
 import com.broker.utils.QrCodeUtils;
@@ -281,7 +281,7 @@ public class BrokerService {
             }
             long id = resultSet.getLong("id");
             ServletOutputStream outputStream = httpResponse.getOutputStream();
-            QrCodeUtils.generateQRCodeImage("www.baidu.com?pid=" + id, outputStream);
+            QrCodeUtils.generateQRCodeImage("http://m.haidushutong.com/?agentTag=Ge&pid=" + id, outputStream);
             outputStream.flush();
             outputStream.close();
             return HttpResult.success();
