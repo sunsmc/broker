@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,4 +23,6 @@ public class BrokerVO {
     private String referrerCode;
     @NonNull
     private String password;
+
+    List<BrokerVO> children;
 }

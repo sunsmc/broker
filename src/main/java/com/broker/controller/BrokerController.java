@@ -64,4 +64,10 @@ public class BrokerController {
 
         return brokerService.getUserInfo(phone, httpResponse);
     }
+
+    @RequestMapping("/tree/{phone}")
+    public HttpResult<List<Broker>> getTreeBroker(@PathVariable("phone") String phone, HttpServletResponse httpResponse) {
+
+        return brokerService.getTreeBroker(phone, httpResponse);
+    }
 }

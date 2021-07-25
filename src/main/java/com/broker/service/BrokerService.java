@@ -11,9 +11,11 @@ import com.google.zxing.WriterException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -324,5 +326,28 @@ public class BrokerService {
             e.printStackTrace();
             return HttpResult.failure(e.getLocalizedMessage());
         }
+    }
+
+    public HttpResult<List<Broker>> getTreeBroker(String phone, HttpServletResponse httpResponse) {
+        List<Broker> brokers = calculateService.brokers;
+        Broker target = find(phone, brokers);
+        if (target != null) {
+            return HttpResult.success(Lists.newArrayList(target));
+        }
+        return HttpResult.success(Lists.newArrayList());
+    }
+
+    private Broker find(String phone, List<Broker> brokers) {
+
+        if (CollectionUtils.isEmpty(brokers)) {
+            return null;
+        }
+        for (Broker broker : brokers) {
+            if (Objects.equals(broker.getMobile(), phone)) {
+                return broker;
+            }
+            return find(phone, broker.getChildren());
+        }
+        return null;
     }
 }
