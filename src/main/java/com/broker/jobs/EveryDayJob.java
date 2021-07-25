@@ -34,7 +34,8 @@ public class EveryDayJob implements ApplicationContextAware {
     private RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
-
+    @Autowired
+    private ConnectionFactory connectionFactory;
 
     @Scheduled(cron = "0 0 1 * * ?")
     public void syncData() {
@@ -82,7 +83,7 @@ public class EveryDayJob implements ApplicationContextAware {
                 insertOrder(orderDO);
 
                 // order -> member -> broker
-                PreparedStatement queryMemberStatement = ConnectionFactory.getQueryMemberStatement();
+                PreparedStatement queryMemberStatement = connectionFactory.getQueryMemberStatement();
                 queryMemberStatement.setString(1, orderDO.getMemberId());
                 ResultSet resultSet = queryMemberStatement.executeQuery();
                 if (!resultSet.next()) {
@@ -97,7 +98,7 @@ public class EveryDayJob implements ApplicationContextAware {
                 orderEvent.setOrderAmountTotal(new BigDecimal(orderDO.getOrderAmountTotal()));
                 orderEvent.setType(OrderType.HAIDUJIAOYU.name());
 
-                PreparedStatement countStatement = ConnectionFactory.getCountOrderStatement();
+                PreparedStatement countStatement = connectionFactory.getCountOrderStatement();
                 countStatement.setString(1, orderDO.getMemberId());
                 resultSet = countStatement.executeQuery();
                 if (resultSet.next()) {
@@ -113,7 +114,7 @@ public class EveryDayJob implements ApplicationContextAware {
 
 
     private void insertOrder(OrderDO orderDO) throws SQLException {
-        PreparedStatement preparedStatement = ConnectionFactory.getInsertOrderStatement();
+        PreparedStatement preparedStatement = connectionFactory.getInsertOrderStatement();
         preparedStatement.setString(1, orderDO.getAddress());
         preparedStatement.setString(2, orderDO.getAddressId());
         preparedStatement.setString(3, orderDO.getCreateDate());
@@ -140,7 +141,7 @@ public class EveryDayJob implements ApplicationContextAware {
     }
 
     private void insertMember(MemberDO memberDO) throws SQLException {
-        PreparedStatement preparedStatement = ConnectionFactory.getInsertMemberStatement();
+        PreparedStatement preparedStatement = connectionFactory.getInsertMemberStatement();
         preparedStatement.setString(1, memberDO.getCardVip());
         preparedStatement.setString(2, memberDO.getCity());
         preparedStatement.setString(3, memberDO.getClassNo());

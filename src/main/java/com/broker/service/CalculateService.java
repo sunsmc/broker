@@ -9,6 +9,7 @@ import com.broker.bo.Broker;
 import org.assertj.core.util.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -23,6 +24,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class CalculateService {
+
+    @Autowired
+    private ConnectionFactory connectionFactory;
 
     private static Logger logger = LoggerFactory.getLogger(CalculateService.class);
 
@@ -39,7 +43,7 @@ public class CalculateService {
     @PostConstruct
     public void initBrokers() {
         try {
-            PreparedStatement preparedStatement = ConnectionFactory.getInitBrokerStatement();
+            PreparedStatement preparedStatement = connectionFactory.getInitBrokerStatement();
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 Broker broker = new Broker();
@@ -55,7 +59,7 @@ public class CalculateService {
                 broker.setIncome(resultSet.getBigDecimal("income"));
                 brokers.add(broker);
             }
-            List<Broker> parents = brokers.stream().filter(broker -> broker.getParentId() == null).collect(Collectors.toList());
+            List<Broker> parents = brokers.stream().filter(broker -> broker.getParentId() <= 0).collect(Collectors.toList());
             brokers.removeAll(parents);
             Map<Long, List<Broker>> subs = brokers.stream().collect(Collectors.groupingBy(Broker::getParentId));
             parents.forEach(parent -> buildChildren(parent, subs));
@@ -81,7 +85,7 @@ public class CalculateService {
         calculateIncomeAndUpgradeLevel(brokers, orderEvent);
         brokersNeedUpdate.forEach(broker -> {
             try {
-                PreparedStatement preparedStatement = ConnectionFactory.getUpdateOrderStatement();
+                PreparedStatement preparedStatement = connectionFactory.getUpdateOrderStatement();
                 preparedStatement.setInt(1, broker.getOrderNums());
                 preparedStatement.setBigDecimal(2, broker.getLevel().getDirect());
                 preparedStatement.setBigDecimal(3, broker.getIncome());
@@ -307,7 +311,7 @@ public class CalculateService {
 
     public void addBroker(Broker broker) {
 
-        if (broker.getParentId() == null) {
+        if (broker.getParentId() == 0) {
             brokers.add(broker);
         } else {
             brokers.forEach(b -> {

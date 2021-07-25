@@ -58,4 +58,10 @@ public class BrokerController {
 
         return brokerService.qrcode(phone, httpResponse);
     }
+
+    @RequestMapping("/{phone}")
+    public HttpResult<BrokerVO> getUserInfo(@PathVariable("phone") String phone, HttpServletResponse httpResponse) {
+
+        return brokerService.getUserInfo(phone, httpResponse);
+    }
 }

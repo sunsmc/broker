@@ -1,38 +1,51 @@
 package com.broker.dao;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
+@Component
 public class ConnectionFactory {
 
+    public Connection orderConn;
+    public Connection memberConn;
+    public Connection brokerConn;
 
-    public static Connection orderConn;
-    public static Connection memberConn;
-    public static Connection brokerConn;
+    private PreparedStatement queryMemberStatement;
+    private PreparedStatement countOrderStatement;
+    private PreparedStatement insertOrderStatement;
+    private PreparedStatement insertMemberStatement;
+    private PreparedStatement initBrokerStatement;
+    private PreparedStatement updateOrderStatement;
+    private PreparedStatement queryBrokerStatement;
+    private PreparedStatement insertBrokerStatement;
+    private PreparedStatement queryBrokerLimitStatement;
+    private PreparedStatement countBrokerStatement;
+    private PreparedStatement referrerStatement;
+    private PreparedStatement queryBrokerByMobileLimitStatement;
+    private PreparedStatement countBrokerByMobileStatement;
+    private PreparedStatement insertBrokerNoParentStatement;
 
-    private static PreparedStatement queryMemberStatement;
-    private static PreparedStatement countOrderStatement;
-    private static PreparedStatement insertOrderStatement;
-    private static PreparedStatement insertMemberStatement;
-    private static PreparedStatement initBrokerStatement;
-    private static PreparedStatement updateOrderStatement;
-    private static PreparedStatement queryBrokerStatement;
-    private static PreparedStatement insertBrokerStatement;
-    private static PreparedStatement queryBrokerLimitStatement;
-    private static PreparedStatement countBrokerStatement;
-    private static PreparedStatement referrerStatement;
-    private static PreparedStatement queryBrokerByMobileLimitStatement;
-    private static PreparedStatement countBrokerByMobileStatement;
+    @Value("${mysql.user}")
+    private String user;
+    @Value("${mysql.url}")
+    private String url;
+    @Value("${mysql.pwd}")
+    private String pwd;
 
-    private static String url = "jdbc:mysql://192.168.85.13:3306/brokers?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-//    private static String url = "jdbc:mysql://localhost:3306/brokers?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static String user = "root";
-    private static String pwd = "Caonima@123";
-//    private static String pwd = "hutu1021";
+    private Map<String, PreparedStatement> statementMap = new HashMap<>();
 
-    static {
+    @PostConstruct
+    public void init() {
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -58,6 +71,7 @@ public class ConnectionFactory {
             initBrokerStatement = brokerConn.prepareStatement("select * from broker");
             queryBrokerStatement = brokerConn.prepareStatement("select * from broker where mobile=? ");
             insertBrokerStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code,parent_id) values (?,?,?,?,?,?)");
+            insertBrokerNoParentStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code) values (?,?,?,?,?)");
             queryBrokerLimitStatement = brokerConn.prepareStatement("select * from broker limit ?,?");
             queryBrokerByMobileLimitStatement = brokerConn.prepareStatement("select * from broker where mobile like concat('%',?,'%') limit ?,?");
             countBrokerStatement = brokerConn.prepareStatement("select count(*) from broker");
@@ -70,59 +84,63 @@ public class ConnectionFactory {
 
     }
 
-    public static PreparedStatement getQueryBrokerByMobileLimitStatement() {
+    public PreparedStatement getInsertBrokerNoParentStatement() {
+        return getPreparedStatement(insertBrokerNoParentStatement);
+    }
+
+    public PreparedStatement getQueryBrokerByMobileLimitStatement() {
         return getPreparedStatement(queryBrokerByMobileLimitStatement);
     }
 
-    public static PreparedStatement getCountBrokerByMobileStatement() {
+    public PreparedStatement getCountBrokerByMobileStatement() {
         return getPreparedStatement(countBrokerByMobileStatement);
     }
 
-    public static PreparedStatement getReferrerStatement() {
+    public PreparedStatement getReferrerStatement() {
         return getPreparedStatement(referrerStatement);
     }
 
-    public static PreparedStatement getCountBrokerStatement() {
+    public PreparedStatement getCountBrokerStatement() {
         return getPreparedStatement(countBrokerStatement);
     }
 
-    public static PreparedStatement getQueryBrokerLimitStatement() {
+    public PreparedStatement getQueryBrokerLimitStatement() {
         return getPreparedStatement(queryBrokerLimitStatement);
     }
 
-    public static PreparedStatement getQueryMemberStatement() {
+    public PreparedStatement getQueryMemberStatement() {
         return getPreparedStatement(queryMemberStatement);
     }
 
-    public static PreparedStatement getCountOrderStatement() {
+    public PreparedStatement getCountOrderStatement() {
         return getPreparedStatement(countOrderStatement);
     }
 
-    public static PreparedStatement getInsertOrderStatement() {
+    public PreparedStatement getInsertOrderStatement() {
         return getPreparedStatement(insertOrderStatement);
     }
 
-    public static PreparedStatement getInsertMemberStatement() {
+    public PreparedStatement getInsertMemberStatement() {
         return getPreparedStatement(insertMemberStatement);
     }
 
-    public static PreparedStatement getInitBrokerStatement() {
+    public PreparedStatement getInitBrokerStatement() {
         return getPreparedStatement(initBrokerStatement);
     }
 
-    public static PreparedStatement getUpdateOrderStatement() {
+    public PreparedStatement getUpdateOrderStatement() {
         return getPreparedStatement(updateOrderStatement);
     }
 
-    public static PreparedStatement getQueryBrokerStatement() {
+    public PreparedStatement getQueryBrokerStatement() {
         return getPreparedStatement(queryBrokerStatement);
     }
 
-    public static PreparedStatement getInsertBrokerStatement() {
+    public PreparedStatement getInsertBrokerStatement() {
         return getPreparedStatement(insertBrokerStatement);
     }
 
-    private static PreparedStatement getPreparedStatement(PreparedStatement preparedStatement) {
+    private PreparedStatement getPreparedStatement(PreparedStatement preparedStatement) {
         try {
             preparedStatement.clearParameters();
             return preparedStatement;

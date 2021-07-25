@@ -31,6 +31,8 @@ public class BrokerService {
 
     @Autowired
     private CalculateService calculateService;
+    @Autowired
+    private ConnectionFactory connectionFactory;
 
     private static final String nullParentReferrerCode = "1qaz@WSX";
 
@@ -42,7 +44,7 @@ public class BrokerService {
             Broker broker = new Broker();
             BeanUtils.copyProperties(brokerVO, broker);
             if (!Objects.equals(nullParentReferrerCode, brokerVO.getReferrerCode())) {
-                PreparedStatement referrerStatement = ConnectionFactory.getReferrerStatement();
+                PreparedStatement referrerStatement = connectionFactory.getReferrerStatement();
                 referrerStatement.setString(1, brokerVO.getReferrerCode());
                 ResultSet resultSet = referrerStatement.executeQuery();
                 if (!resultSet.next()) {
@@ -51,20 +53,33 @@ public class BrokerService {
                 if (StringUtils.isBlank(brokerVO.getPassword())) {
                     return HttpResult.failure("密码为空");
                 }
-                broker.setParentId(resultSet.getLong("parent_id"));
+                broker.setParentId(resultSet.getLong("id"));
             }
-            PreparedStatement insertBrokerStatement = ConnectionFactory.getInsertBrokerStatement();
-            insertBrokerStatement.setString(1, broker.getName());
-            insertBrokerStatement.setString(2, broker.getMobile());
-            insertBrokerStatement.setString(3, broker.getAccount());
-            insertBrokerStatement.setString(4, broker.getPassword());
-            insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
-            insertBrokerStatement.setLong(6, broker.getParentId());
-            insertBrokerStatement.execute();
 
-            if (broker.getParentId() == null) {
+            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerStatement();
+            queryBrokerStatement.setString(1, brokerVO.getMobile());
+            ResultSet resultSet = queryBrokerStatement.executeQuery();
+            if (resultSet.next()) {
+                return HttpResult.failure("该手机号已注册");
+            }
+            if (broker.getParentId() == null || broker.getParentId() <= 0) {
+                PreparedStatement insertBrokerStatement = connectionFactory.getInsertBrokerNoParentStatement();
+                insertBrokerStatement.setString(1, broker.getName());
+                insertBrokerStatement.setString(2, broker.getMobile());
+                insertBrokerStatement.setString(3, broker.getAccount());
+                insertBrokerStatement.setString(4, broker.getPassword());
+                insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
+                insertBrokerStatement.execute();
                 calculateService.brokers.add(broker);
             } else {
+                PreparedStatement insertBrokerStatement = connectionFactory.getInsertBrokerStatement();
+                insertBrokerStatement.setString(1, broker.getName());
+                insertBrokerStatement.setString(2, broker.getMobile());
+                insertBrokerStatement.setString(3, broker.getAccount());
+                insertBrokerStatement.setString(4, broker.getPassword());
+                insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
+                insertBrokerStatement.setLong(6, broker.getParentId());
+                insertBrokerStatement.execute();
                 for (Broker b : calculateService.brokers) {
                     if (b.getId().equals(broker.getParentId())) {
                         b.getChildren().add(broker);
@@ -82,13 +97,13 @@ public class BrokerService {
     public Pair<Integer, List<Broker>> searchBrokers(Integer limit, Integer offset, String mobile) {
 
         try {
-            PreparedStatement countBrokerStatement = ConnectionFactory.getCountBrokerByMobileStatement();
+            PreparedStatement countBrokerStatement = connectionFactory.getCountBrokerByMobileStatement();
             countBrokerStatement.setString(1, mobile);
             ResultSet countRes = countBrokerStatement.executeQuery();
             if (!countRes.next()) {
                 return Pair.of(0, null);
             }
-            PreparedStatement queryBrokerStatement = ConnectionFactory.getQueryBrokerByMobileLimitStatement();
+            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerByMobileLimitStatement();
             List<Broker> brokers = new ArrayList<>(limit * 2);
             queryBrokerStatement.setString(1, mobile);
             queryBrokerStatement.setInt(2, offset);
@@ -122,9 +137,9 @@ public class BrokerService {
     public Pair<Integer, List<Broker>> getBrokers(Integer limit, Integer offset) {
 
         try {
-            PreparedStatement countBrokerStatement = ConnectionFactory.getCountBrokerStatement();
+            PreparedStatement countBrokerStatement = connectionFactory.getCountBrokerStatement();
             List<Broker> brokers = new ArrayList<>(limit * 2);
-            PreparedStatement queryBrokerStatement = ConnectionFactory.getQueryBrokerLimitStatement();
+            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerLimitStatement();
             ResultSet countRes = countBrokerStatement.executeQuery();
             if (!countRes.next()) {
                 return Pair.of(0, null);
@@ -160,7 +175,7 @@ public class BrokerService {
     public HttpResult<Void> export(HttpServletResponse httpServletResponse) {
 
         List<Broker> brokers = new ArrayList<>();
-        PreparedStatement brokerStatement = ConnectionFactory.getInitBrokerStatement();
+        PreparedStatement brokerStatement = connectionFactory.getInitBrokerStatement();
         try {
             ResultSet resultSet = brokerStatement.executeQuery();
             while (resultSet.next()) {
@@ -239,7 +254,7 @@ public class BrokerService {
 
     public HttpResult<Broker> login(String phone, String password) {
 
-        PreparedStatement queryBrokerStatement = ConnectionFactory.getQueryBrokerStatement();
+        PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerStatement();
         try {
             queryBrokerStatement.setString(1, phone);
             ResultSet resultSet = queryBrokerStatement.executeQuery();
@@ -273,7 +288,7 @@ public class BrokerService {
 
     public HttpResult<Void> qrcode(String phone, HttpServletResponse httpResponse) {
         try {
-            PreparedStatement queryBrokerStatement = ConnectionFactory.getQueryBrokerStatement();
+            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerStatement();
             queryBrokerStatement.setString(1, phone);
             ResultSet resultSet = queryBrokerStatement.executeQuery();
             if (!resultSet.next()) {
@@ -286,6 +301,26 @@ public class BrokerService {
             outputStream.close();
             return HttpResult.success();
         } catch (WriterException | IOException | SQLException e) {
+            e.printStackTrace();
+            return HttpResult.failure(e.getLocalizedMessage());
+        }
+    }
+
+    public HttpResult<BrokerVO> getUserInfo(String phone, HttpServletResponse httpResponse) {
+        try {
+            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerStatement();
+            queryBrokerStatement.setString(1, phone);
+            ResultSet resultSet = queryBrokerStatement.executeQuery();
+            if (!resultSet.next()) {
+                return HttpResult.failure("broker not exists");
+            }
+            BrokerVO broker = new BrokerVO();
+            broker.setName(resultSet.getString("name"));
+            broker.setMobile(resultSet.getString("mobile"));
+            broker.setAccount(resultSet.getString("account"));
+            broker.setReferrerCode(resultSet.getString("referrer_code"));
+            return HttpResult.success(broker);
+        } catch (SQLException e) {
             e.printStackTrace();
             return HttpResult.failure(e.getLocalizedMessage());
         }

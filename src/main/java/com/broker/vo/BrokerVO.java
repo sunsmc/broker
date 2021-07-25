@@ -1,10 +1,14 @@
 package com.broker.vo;
 
 import com.broker.enums.Level;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class BrokerVO {
 
     @NonNull
