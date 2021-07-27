@@ -6,10 +6,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +31,8 @@ public class ConnectionFactory {
     private PreparedStatement queryBrokerByMobileLimitStatement;
     private PreparedStatement countBrokerByMobileStatement;
     private PreparedStatement insertBrokerNoParentStatement;
+    private PreparedStatement queryBrokerById;
+    private PreparedStatement getOrder;
 
     @Value("${mysql.user}")
     private String user;
@@ -57,21 +56,23 @@ public class ConnectionFactory {
             queryMemberStatement = memberConn.prepareStatement("select pid from member where member_id = ? ");
             insertMemberStatement = memberConn.prepareStatement("insert into member (card_vip,city,class_no,created_date,gender,get_week_card,grade,grade_id,head_icon,member_id," +
                     "name,nic,password,phone,pid,province,purchased_card,region,school_id,school_name,share_type,start_date,stop_date,union_id,user_id,vip_type) " +
-                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
 
             //order
             insertOrderStatement = orderConn.prepareStatement("insert into `order` (address,address_id,create_date,delivery_date,discount_amount,member_id,merchant_id,merchant_name," +
                     "order_amount_total,order_id,order_status,order_total_id,out_trade_no,pay_channel,payment_date,phone,product_amount_total," +
                     "recipient,recipient_phone,remark,tracking_no,transaction_date) " +
-                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
             countOrderStatement = orderConn.prepareStatement("select count(*) from order where member_id = ? ");
             updateOrderStatement = orderConn.prepareStatement("update broker set order_nums=?,level=?,income=? where id=?");
+            getOrder = orderConn.prepareStatement("select * from `order` where order_id = ?");
 
             //broker
             initBrokerStatement = brokerConn.prepareStatement("select * from broker");
             queryBrokerStatement = brokerConn.prepareStatement("select * from broker where mobile=? ");
-            insertBrokerStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code,parent_id) values (?,?,?,?,?,?)");
-            insertBrokerNoParentStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code) values (?,?,?,?,?)");
+            queryBrokerById = brokerConn.prepareStatement("select * from broker where id=? ");
+            insertBrokerStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code,parent_id) values (?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+            insertBrokerNoParentStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code) values (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
             queryBrokerLimitStatement = brokerConn.prepareStatement("select * from broker limit ?,?");
             queryBrokerByMobileLimitStatement = brokerConn.prepareStatement("select * from broker where mobile like concat('%',?,'%') limit ?,?");
             countBrokerStatement = brokerConn.prepareStatement("select count(*) from broker");
@@ -82,6 +83,14 @@ public class ConnectionFactory {
             e.printStackTrace();
         }
 
+    }
+
+    public PreparedStatement getGetOrder() {
+        return getPreparedStatement(getOrder);
+    }
+
+    public PreparedStatement getQueryBrokerById() {
+        return getPreparedStatement(queryBrokerById);
     }
 
     public PreparedStatement getInsertBrokerNoParentStatement() {

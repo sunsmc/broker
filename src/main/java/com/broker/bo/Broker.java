@@ -15,12 +15,10 @@ public class Broker {
      * base elements
      */
     private Long id;
+    private Long parentId;
     private String name;
     private String mobile;
     private String account;
-    private Long parentId;
-    private Level level = Level.ordinary;
-    private String levelStr = Level.ordinary.getName();
     private String referrerCode;
     private String password;
     private Date createDate;
@@ -33,13 +31,15 @@ public class Broker {
     //3>120
     private Integer subOrderNums = 0;
 
-    private BigDecimal income = BigDecimal.ZERO;
+    private Level level = Level.ordinary;
+    private String levelStr = Level.ordinary.getName();
 
-    private BigDecimal directIncome;
-    private BigDecimal firstIncome;
-    private BigDecimal secondIncome;
-    private BigDecimal teamIncome;
-    private BigDecimal shopIncome;
-    private BigDecimal researchIncome;
+    private BigDecimal income = BigDecimal.ZERO;
+    private BigDecimal directIncome = BigDecimal.ZERO;
+    private BigDecimal firstIncome = BigDecimal.ZERO;
+    private BigDecimal secondIncome = BigDecimal.ZERO;
+    private BigDecimal teamIncome = BigDecimal.ZERO;
+    private BigDecimal shopIncome = BigDecimal.ZERO;
+    private BigDecimal researchIncome = BigDecimal.ZERO;
 
 }

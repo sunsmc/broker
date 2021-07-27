@@ -30,14 +30,14 @@ public class EveryDayJob implements ApplicationContextAware {
 
     private static Logger logger = LoggerFactory.getLogger(EveryDayJob.class);
 
-//    @Autowired
+    //    @Autowired
     private RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
     @Autowired
     private ConnectionFactory connectionFactory;
 
-    @Scheduled(cron = "0 0 1 * * ?")
+    @Scheduled(cron = "0 * * * * ?")
     public void syncData() {
 
         syncMember();
@@ -57,7 +57,7 @@ public class EveryDayJob implements ApplicationContextAware {
         ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
         Result<MemberDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<MemberDO>>() {
         });
-        System.out.println(JSON.toJSONString(result));
+        logger.info(JSON.toJSONString(result));
         try {
             for (MemberDO memberDO : result.getData()) {
                 insertMember(memberDO);
@@ -75,8 +75,7 @@ public class EveryDayJob implements ApplicationContextAware {
         ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
         Result<OrderDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<OrderDO>>() {
         });
-        System.out.println(JSON.toJSONString(result));
-
+        logger.info(JSON.toJSONString(result));
         try {
             for (OrderDO orderDO : result.getData()) {
 
@@ -114,6 +113,13 @@ public class EveryDayJob implements ApplicationContextAware {
 
 
     private void insertOrder(OrderDO orderDO) throws SQLException {
+        PreparedStatement getOrder = connectionFactory.getGetOrder();
+        getOrder.setString(1, orderDO.getOrderId());
+        ResultSet resultSet = getOrder.executeQuery();
+        if (resultSet.next()) {
+            logger.error("orderDO already exists:{}", JSON.toJSONString(orderDO));
+            return;
+        }
         PreparedStatement preparedStatement = connectionFactory.getInsertOrderStatement();
         preparedStatement.setString(1, orderDO.getAddress());
         preparedStatement.setString(2, orderDO.getAddressId());
@@ -141,6 +147,13 @@ public class EveryDayJob implements ApplicationContextAware {
     }
 
     private void insertMember(MemberDO memberDO) throws SQLException {
+        PreparedStatement queryMemberStatement = connectionFactory.getQueryMemberStatement();
+        queryMemberStatement.setString(1, memberDO.getMemberId());
+        ResultSet resultSet = queryMemberStatement.executeQuery();
+        if (resultSet.next()) {
+            logger.error("memberDO already exists:{}", JSON.toJSONString(memberDO));
+            return;
+        }
         PreparedStatement preparedStatement = connectionFactory.getInsertMemberStatement();
         preparedStatement.setString(1, memberDO.getCardVip());
         preparedStatement.setString(2, memberDO.getCity());

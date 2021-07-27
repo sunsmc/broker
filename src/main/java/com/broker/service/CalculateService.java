@@ -47,16 +47,7 @@ public class CalculateService {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 Broker broker = new Broker();
-                broker.setId(resultSet.getLong("id"));
-                broker.setName(resultSet.getString("name"));
-                broker.setMobile(resultSet.getString("mobile"));
-                broker.setAccount(resultSet.getString("account"));
-                broker.setParentId(resultSet.getLong("parent_id"));
-                broker.setLevel(Level.valueOf(resultSet.getString("level")));
-                broker.setReferrerCode(resultSet.getString("referrer_code"));
-                broker.setOrderNums(resultSet.getInt("order_nums"));
-                broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
-                broker.setIncome(resultSet.getBigDecimal("income"));
+                BrokerService.buildBroker(resultSet, broker);
                 brokers.add(broker);
             }
             List<Broker> parents = brokers.stream().filter(broker -> broker.getParentId() <= 0).collect(Collectors.toList());

@@ -1,5 +1,6 @@
 package com.broker.service;
 
+import com.alibaba.fastjson.JSON;
 import com.broker.bo.HttpResult;
 import com.broker.bo.Broker;
 import com.broker.dao.ConnectionFactory;
@@ -8,10 +9,13 @@ import com.broker.utils.ExcelUtil;
 import com.broker.utils.QrCodeUtils;
 import com.broker.vo.BrokerVO;
 import com.google.zxing.WriterException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.assertj.core.util.Lists;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,8 @@ import java.util.UUID;
 
 @Service
 public class BrokerService {
+
+    private static Logger logger = LoggerFactory.getLogger(BrokerService.class);
 
     @Autowired
     private CalculateService calculateService;
@@ -72,6 +78,16 @@ public class BrokerService {
                 insertBrokerStatement.setString(4, broker.getPassword());
                 insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
                 insertBrokerStatement.execute();
+                ResultSet generatedKeys = insertBrokerStatement.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    Long id = generatedKeys.getLong(1);
+                    PreparedStatement queryBrokerById = connectionFactory.getQueryBrokerById();
+                    queryBrokerById.setLong(1, id);
+                    ResultSet query = queryBrokerById.executeQuery();
+                    if (query.next()) {
+                        buildBroker(query, broker);
+                    }
+                }
                 calculateService.brokers.add(broker);
             } else {
                 PreparedStatement insertBrokerStatement = connectionFactory.getInsertBrokerStatement();
@@ -82,6 +98,16 @@ public class BrokerService {
                 insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
                 insertBrokerStatement.setLong(6, broker.getParentId());
                 insertBrokerStatement.execute();
+                ResultSet generatedKeys = insertBrokerStatement.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    Long id = generatedKeys.getLong(1);
+                    PreparedStatement queryBrokerById = connectionFactory.getQueryBrokerById();
+                    queryBrokerById.setLong(1, id);
+                    ResultSet query = queryBrokerById.executeQuery();
+                    if (query.next()) {
+                        buildBroker(query, broker);
+                    }
+                }
                 for (Broker b : calculateService.brokers) {
                     if (b.getId().equals(broker.getParentId())) {
                         b.getChildren().add(broker);
@@ -114,19 +140,7 @@ public class BrokerService {
             while (resultSet.next()) {
                 Broker broker = new Broker();
                 brokers.add(broker);
-                broker.setId(resultSet.getLong("id"));
-                broker.setName(resultSet.getString("name"));
-                broker.setMobile(resultSet.getString("mobile"));
-                broker.setAccount(resultSet.getString("account"));
-                broker.setParentId(resultSet.getLong("parent_id"));
-                broker.setLevel(Level.valueOf(resultSet.getString("level")));
-                broker.setLevelStr(broker.getLevel().getName());
-                broker.setReferrerCode(resultSet.getString("referrer_code"));
-                broker.setOrderNums(resultSet.getInt("order_nums"));
-                broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
-                broker.setReferrerCode(resultSet.getString("referrer_code"));
-                broker.setIncome(resultSet.getBigDecimal("income"));
-                broker.setCreateDate(resultSet.getDate("create_date"));
+                buildBroker(resultSet, broker);
             }
             return Pair.of(countRes.getInt(1), brokers);
 
@@ -134,6 +148,29 @@ public class BrokerService {
             e.printStackTrace();
         }
         return Pair.of(0, null);
+    }
+
+    public static void buildBroker(ResultSet resultSet, Broker broker) throws SQLException {
+        broker.setId(resultSet.getLong("id"));
+        broker.setName(resultSet.getString("name"));
+        broker.setMobile(resultSet.getString("mobile"));
+        broker.setAccount(resultSet.getString("account"));
+        broker.setParentId(resultSet.getLong("parent_id"));
+        broker.setLevel(Level.valueOf(resultSet.getString("level")));
+        broker.setLevelStr(broker.getLevel().getName());
+        broker.setReferrerCode(resultSet.getString("referrer_code"));
+        broker.setOrderNums(resultSet.getInt("order_nums"));
+        broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
+        broker.setReferrerCode(resultSet.getString("referrer_code"));
+        broker.setIncome(resultSet.getBigDecimal("income"));
+        broker.setDirectIncome(resultSet.getBigDecimal("direct_income"));
+        broker.setFirstIncome(resultSet.getBigDecimal("first_income"));
+        broker.setSecondIncome(resultSet.getBigDecimal("second_income"));
+        broker.setTeamIncome(resultSet.getBigDecimal("team_income"));
+        broker.setShopIncome(resultSet.getBigDecimal("shop_income"));
+        broker.setResearchIncome(resultSet.getBigDecimal("research_income"));
+        broker.setCreateDate(resultSet.getDate("create_date"));
+        broker.setChildren(Lists.newArrayList());
     }
 
     public Pair<Integer, List<Broker>> getBrokers(Integer limit, Integer offset) {
@@ -152,19 +189,7 @@ public class BrokerService {
             while (resultSet.next()) {
                 Broker broker = new Broker();
                 brokers.add(broker);
-                broker.setId(resultSet.getLong("id"));
-                broker.setName(resultSet.getString("name"));
-                broker.setMobile(resultSet.getString("mobile"));
-                broker.setAccount(resultSet.getString("account"));
-                broker.setParentId(resultSet.getLong("parent_id"));
-                broker.setLevel(Level.valueOf(resultSet.getString("level")));
-                broker.setLevelStr(broker.getLevel().getName());
-                broker.setReferrerCode(resultSet.getString("referrer_code"));
-                broker.setOrderNums(resultSet.getInt("order_nums"));
-                broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
-                broker.setReferrerCode(resultSet.getString("referrer_code"));
-                broker.setIncome(resultSet.getBigDecimal("income"));
-                broker.setCreateDate(resultSet.getDate("create_date"));
+                buildBroker(resultSet, broker);
             }
             return Pair.of(countRes.getInt(1), brokers);
 
@@ -183,21 +208,11 @@ public class BrokerService {
             while (resultSet.next()) {
                 Broker broker = new Broker();
                 brokers.add(broker);
-                broker.setId(resultSet.getLong("id"));
-                broker.setName(resultSet.getString("name"));
-                broker.setMobile(resultSet.getString("mobile"));
-                broker.setAccount(resultSet.getString("account"));
-                broker.setParentId(resultSet.getLong("parent_id"));
-                broker.setLevel(Level.valueOf(resultSet.getString("level")));
-                broker.setReferrerCode(resultSet.getString("referrer_code"));
-                broker.setOrderNums(resultSet.getInt("order_nums"));
-                broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
-                broker.setReferrerCode(resultSet.getString("referrer_code"));
-                broker.setIncome(resultSet.getBigDecimal("income"));
-                broker.setCreateDate(resultSet.getDate("create_date"));
+                buildBroker(resultSet, broker);
+                broker.setPassword(null);
             }
             //excel标题
-            String[] title = {"用户", "电话", "银行账户", "收入", "级别", "注册时间"};
+            String[] title = {"用户", "电话", "银行账户", "直接收入", "一代收入", "二代收入", "团队收入", "商场收入", "乐研收入", "总收入", "级别", "注册时间"};
 
             //excel文件名
             String fileName = "推广者" + System.currentTimeMillis() + ".xls";
@@ -211,9 +226,15 @@ public class BrokerService {
                 content[i][0] = obj.getName();
                 content[i][1] = obj.getMobile();
                 content[i][2] = obj.getAccount();
-                content[i][3] = String.valueOf(obj.getIncome());
-                content[i][4] = obj.getLevel().getName();
-                content[i][4] = obj.getCreateDate().toString();
+                content[i][3] = String.valueOf(obj.getDirectIncome());
+                content[i][4] = String.valueOf(obj.getFirstIncome());
+                content[i][5] = String.valueOf(obj.getSecondIncome());
+                content[i][6] = String.valueOf(obj.getTeamIncome());
+                content[i][7] = String.valueOf(obj.getShopIncome());
+                content[i][8] = String.valueOf(obj.getResearchIncome());
+                content[i][9] = String.valueOf(obj.getIncome());
+                content[i][10] = obj.getLevel().getName();
+                content[i][11] = obj.getCreateDate().toString();
             }
 
             //创建HSSFWorkbook
@@ -330,6 +351,7 @@ public class BrokerService {
 
     public HttpResult<List<Broker>> getTreeBroker(String phone, HttpServletResponse httpResponse) {
         List<Broker> brokers = calculateService.brokers;
+        logger.info(JSON.toJSONString(brokers));
         Broker target = find(phone, brokers);
         if (target != null) {
             return HttpResult.success(Lists.newArrayList(target));
@@ -346,7 +368,12 @@ public class BrokerService {
             if (Objects.equals(broker.getMobile(), phone)) {
                 return broker;
             }
-            return find(phone, broker.getChildren());
+        }
+        for (Broker broker : brokers) {
+            Broker target = find(phone, broker.getChildren());
+            if (target != null) {
+                return target;
+            }
         }
         return null;
     }
