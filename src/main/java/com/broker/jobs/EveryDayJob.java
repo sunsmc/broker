@@ -65,7 +65,7 @@ public class EveryDayJob implements ApplicationContextAware {
         ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
         Result<MemberDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<MemberDO>>() {
         });
-        logger.info(JSON.toJSONString(result));
+        logger.info("sync member:{}", JSON.toJSONString(result));
         try {
             for (MemberDO memberDO : result.getData()) {
                 insertMember(memberDO);
@@ -83,7 +83,7 @@ public class EveryDayJob implements ApplicationContextAware {
         ResponseEntity<String> getResult = restTemplate.getForEntity(url, String.class, new HashMap<>());
         Result<OrderDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<OrderDO>>() {
         });
-        logger.info(JSON.toJSONString(result));
+        logger.info("sync order:{}", JSON.toJSONString(result));
         try {
             for (OrderDO orderDO : result.getData()) {
 
