@@ -17,11 +17,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.HashMap;
 
@@ -36,6 +39,11 @@ public class EveryDayJob implements ApplicationContextAware {
     private ApplicationEventPublisher applicationEventPublisher;
     @Autowired
     private ConnectionFactory connectionFactory;
+
+    @PostConstruct
+    private void setRestTemplate() {
+        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+    }
 
     @Scheduled(cron = "0 * * * * ?")
     public void syncData() {
