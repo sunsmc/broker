@@ -64,7 +64,7 @@ public class ConnectionFactory {
                     "recipient,recipient_phone,remark,tracking_no,transaction_date) " +
                     "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
             countOrderStatement = orderConn.prepareStatement("select count(*) from `order` where member_id = ? ");
-            updateOrderStatement = orderConn.prepareStatement("update broker set order_nums=?,`level`=?,income=? where id=?");
+            updateOrderStatement = orderConn.prepareStatement("update broker set order_nums=?,`level`=?,income=?,direct_income=?,first_income=?,second_income=?,team_income=?,shop_income=?,research_income=? where id=?");
             getOrder = orderConn.prepareStatement("select * from `order` where order_id = ?");
 
             //broker

@@ -81,7 +81,13 @@ public class CalculateService {
                 preparedStatement.setInt(1, broker.getOrderNums());
                 preparedStatement.setString(2, broker.getLevel().name());
                 preparedStatement.setBigDecimal(3, broker.getIncome());
-                preparedStatement.setLong(4, broker.getId());
+                preparedStatement.setBigDecimal(4, broker.getDirectIncome());
+                preparedStatement.setBigDecimal(5, broker.getFirstIncome());
+                preparedStatement.setBigDecimal(6, broker.getSecondIncome());
+                preparedStatement.setBigDecimal(7, broker.getTeamIncome());
+                preparedStatement.setBigDecimal(8, broker.getShopIncome());
+                preparedStatement.setBigDecimal(9, broker.getTeamIncome());
+                preparedStatement.setLong(10, broker.getId());
                 preparedStatement.execute();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -298,6 +304,15 @@ public class CalculateService {
                     break;
             }
         }
+
+        BigDecimal directIncome = broker.getDirectIncome();
+        BigDecimal secondIncome = broker.getSecondIncome();
+        BigDecimal firstIncome = broker.getFirstIncome();
+        BigDecimal teamIncome = broker.getTeamIncome();
+        BigDecimal shopIncome = broker.getShopIncome();
+        BigDecimal researchIncome = broker.getResearchIncome();
+
+        broker.setIncome(directIncome.add(secondIncome).add(firstIncome).add(teamIncome).add(shopIncome).add(researchIncome));
     }
 
 
