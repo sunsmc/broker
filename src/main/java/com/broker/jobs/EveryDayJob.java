@@ -87,12 +87,20 @@ public class EveryDayJob implements ApplicationContextAware {
         try {
             for (OrderDO orderDO : result.getData()) {
 
+                PreparedStatement getOrder = connectionFactory.getGetOrder();
+                getOrder.setString(1, orderDO.getOrderId());
+                ResultSet resultSet = getOrder.executeQuery();
+                if (resultSet.next()) {
+                    logger.error("orderDO already exists:{}", JSON.toJSONString(orderDO));
+                    return;
+                }
+
                 insertOrder(orderDO);
 
                 // order -> member -> broker
                 PreparedStatement queryMemberStatement = connectionFactory.getQueryMemberStatement();
                 queryMemberStatement.setString(1, orderDO.getMemberId());
-                ResultSet resultSet = queryMemberStatement.executeQuery();
+                resultSet = queryMemberStatement.executeQuery();
                 if (!resultSet.next()) {
                     logger.error("order not belong anyone:{}", JSON.toJSONString(orderDO));
                     continue;
@@ -109,7 +117,7 @@ public class EveryDayJob implements ApplicationContextAware {
                 countStatement.setString(1, orderDO.getMemberId());
                 resultSet = countStatement.executeQuery();
                 if (resultSet.next()) {
-                    orderEvent.setRenewal(resultSet.getInt(1) > 0);
+                    orderEvent.setRenewal(resultSet.getInt(1) > 1);
                 }
                 applicationEventPublisher.publishEvent(orderEvent);
             }
@@ -121,13 +129,7 @@ public class EveryDayJob implements ApplicationContextAware {
 
 
     private void insertOrder(OrderDO orderDO) throws SQLException {
-        PreparedStatement getOrder = connectionFactory.getGetOrder();
-        getOrder.setString(1, orderDO.getOrderId());
-        ResultSet resultSet = getOrder.executeQuery();
-        if (resultSet.next()) {
-            logger.error("orderDO already exists:{}", JSON.toJSONString(orderDO));
-            return;
-        }
+
         PreparedStatement preparedStatement = connectionFactory.getInsertOrderStatement();
         preparedStatement.setString(1, orderDO.getAddress());
         preparedStatement.setString(2, orderDO.getAddressId());

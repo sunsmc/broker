@@ -72,13 +72,14 @@ public class CalculateService {
     @EventListener
     public synchronized void addOrder(OrderEvent orderEvent) {
 
+        logger.info("order event:{}", JSON.toJSONString(orderEvent));
         brokersNeedUpdate.clear();
         calculateIncomeAndUpgradeLevel(brokers, orderEvent);
         brokersNeedUpdate.forEach(broker -> {
             try {
                 PreparedStatement preparedStatement = connectionFactory.getUpdateOrderStatement();
                 preparedStatement.setInt(1, broker.getOrderNums());
-                preparedStatement.setBigDecimal(2, broker.getLevel().getDirect());
+                preparedStatement.setString(2, broker.getLevel().name());
                 preparedStatement.setBigDecimal(3, broker.getIncome());
                 preparedStatement.setLong(4, broker.getId());
                 preparedStatement.execute();

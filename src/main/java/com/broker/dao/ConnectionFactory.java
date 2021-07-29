@@ -63,8 +63,8 @@ public class ConnectionFactory {
                     "order_amount_total,order_id,order_status,order_total_id,out_trade_no,pay_channel,payment_date,phone,product_amount_total," +
                     "recipient,recipient_phone,remark,tracking_no,transaction_date) " +
                     "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
-            countOrderStatement = orderConn.prepareStatement("select count(*) from order where member_id = ? ");
-            updateOrderStatement = orderConn.prepareStatement("update broker set order_nums=?,level=?,income=? where id=?");
+            countOrderStatement = orderConn.prepareStatement("select count(*) from `order` where member_id = ? ");
+            updateOrderStatement = orderConn.prepareStatement("update broker set order_nums=?,`level`=?,income=? where id=?");
             getOrder = orderConn.prepareStatement("select * from `order` where order_id = ?");
 
             //broker
