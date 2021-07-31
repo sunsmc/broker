@@ -3,13 +3,17 @@ package com.broker.service;
 import com.alibaba.fastjson.JSON;
 import com.broker.bo.HttpResult;
 import com.broker.bo.Broker;
+import com.broker.bo.OrderEvent;
 import com.broker.dao.ConnectionFactory;
 import com.broker.enums.Level;
+import com.broker.enums.OrderType;
 import com.broker.utils.ExcelUtil;
 import com.broker.utils.QrCodeUtils;
 import com.broker.vo.BrokerVO;
 import com.google.zxing.WriterException;
 import lombok.extern.slf4j.Slf4j;
+import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -26,11 +30,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class BrokerService {
@@ -122,32 +128,40 @@ public class BrokerService {
         return HttpResult.success();
     }
 
-    public Pair<Integer, List<Broker>> searchBrokers(Integer limit, Integer offset, String mobile) {
+    public Pair<Integer, List<Broker>> searchBrokers(Integer limit, Integer offset, String phone, String search) {
 
-        try {
-            PreparedStatement countBrokerStatement = connectionFactory.getCountBrokerByMobileStatement();
-            countBrokerStatement.setString(1, mobile);
-            ResultSet countRes = countBrokerStatement.executeQuery();
-            if (!countRes.next()) {
-                return Pair.of(0, null);
-            }
-            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerByMobileLimitStatement();
-            List<Broker> brokers = new ArrayList<>(limit * 2);
-            queryBrokerStatement.setString(1, mobile);
-            queryBrokerStatement.setInt(2, offset);
-            queryBrokerStatement.setInt(3, limit);
-            ResultSet resultSet = queryBrokerStatement.executeQuery();
-            while (resultSet.next()) {
-                Broker broker = new Broker();
-                brokers.add(broker);
-                buildBroker(resultSet, broker);
-            }
-            return Pair.of(countRes.getInt(1), brokers);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+        List<Broker> brokers = getListBroker(phone);
+        if (StringUtils.isBlank(search)) {
+            int size = brokers.size();
+            List<Broker> res = brokers.stream().skip(offset).limit(limit).collect(Collectors.toList());
+            return Pair.of(size, res);
         }
-        return Pair.of(0, null);
+        List<Broker> brokerList = brokers.stream().filter(broker -> broker.getMobile().contains(search)).collect(Collectors.toList());
+        return Pair.of(brokers.size(), brokerList);
+//        try {
+//            PreparedStatement countBrokerStatement = connectionFactory.getCountBrokerByMobileStatement();
+//            countBrokerStatement.setString(1, mobile);
+//            ResultSet countRes = countBrokerStatement.executeQuery();
+//            if (!countRes.next()) {
+//                return Pair.of(0, null);
+//            }
+//            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerByMobileLimitStatement();
+//            List<Broker> brokers = new ArrayList<>(limit * 2);
+//            queryBrokerStatement.setString(1, mobile);
+//            queryBrokerStatement.setInt(2, offset);
+//            queryBrokerStatement.setInt(3, limit);
+//            ResultSet resultSet = queryBrokerStatement.executeQuery();
+//            while (resultSet.next()) {
+//                Broker broker = new Broker();
+//                brokers.add(broker);
+//                buildBroker(resultSet, broker);
+//            }
+//            return Pair.of(countRes.getInt(1), brokers);
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return Pair.of(0, null);
     }
 
     public static void buildBroker(ResultSet resultSet, Broker broker) throws SQLException {
@@ -157,7 +171,7 @@ public class BrokerService {
         broker.setAccount(resultSet.getString("account"));
         broker.setParentId(resultSet.getLong("parent_id"));
         broker.setLevel(Level.valueOf(resultSet.getString("level")));
-        broker.setLevelStr(broker.getLevel().getName());
+        broker.setLevelStr(resultSet.getString("level"));
         broker.setReferrerCode(resultSet.getString("referrer_code"));
         broker.setOrderNums(resultSet.getInt("order_nums"));
         broker.setSubOrderNums(resultSet.getInt("sub_order_nums"));
@@ -173,85 +187,104 @@ public class BrokerService {
         broker.setChildren(Lists.newArrayList());
     }
 
-    public Pair<Integer, List<Broker>> getBrokers(Integer limit, Integer offset) {
-
-        try {
-            PreparedStatement countBrokerStatement = connectionFactory.getCountBrokerStatement();
-            List<Broker> brokers = new ArrayList<>(limit * 2);
-            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerLimitStatement();
-            ResultSet countRes = countBrokerStatement.executeQuery();
-            if (!countRes.next()) {
-                return Pair.of(0, null);
-            }
-            queryBrokerStatement.setInt(1, offset);
-            queryBrokerStatement.setInt(2, limit);
-            ResultSet resultSet = queryBrokerStatement.executeQuery();
-            while (resultSet.next()) {
-                Broker broker = new Broker();
-                brokers.add(broker);
-                buildBroker(resultSet, broker);
-            }
-            return Pair.of(countRes.getInt(1), brokers);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public List<Broker> getListBroker(String phone) {
+        List<Broker> brokerList = calculateService.brokers;
+        Broker current = find(phone, brokerList);
+        if (current == null) {
+            return Lists.newArrayList();
         }
-        return Pair.of(0, null);
+        List<Broker> brokers = new ArrayList<>();
+        brokers.add(current);
+        if (!CollectionUtils.isEmpty(current.getChildren())) {
+            brokers.addAll(current.getChildren());
+            current.getChildren().forEach(c -> {
+                if (!CollectionUtils.isEmpty(c.getChildren())) {
+                    brokers.addAll(c.getChildren());
+                }
+            });
+        }
+        return brokers;
     }
 
-    public HttpResult<Void> export(HttpServletResponse httpServletResponse) {
+    public Pair<Integer, List<Broker>> getBrokers(Integer limit, Integer offset, String phone) {
 
-        List<Broker> brokers = new ArrayList<>();
-        PreparedStatement brokerStatement = connectionFactory.getInitBrokerStatement();
+        List<Broker> brokers = getListBroker(phone);
+        int size = brokers.size();
+        List<Broker> res = brokers.stream().skip(offset).limit(limit).collect(Collectors.toList());
+        return Pair.of(size, res);
+//
+//        try {
+//            PreparedStatement countBrokerStatement = connectionFactory.getCountBrokerStatement();
+//            List<Broker> brokers = new ArrayList<>(limit * 2);
+//            PreparedStatement queryBrokerStatement = connectionFactory.getQueryBrokerLimitStatement();
+//            ResultSet countRes = countBrokerStatement.executeQuery();
+//            if (!countRes.next()) {
+//                return Pair.of(0, null);
+//            }
+//            queryBrokerStatement.setInt(1, offset);
+//            queryBrokerStatement.setInt(2, limit);
+//            ResultSet resultSet = queryBrokerStatement.executeQuery();
+//            while (resultSet.next()) {
+//                Broker broker = new Broker();
+//                brokers.add(broker);
+//                buildBroker(resultSet, broker);
+//            }
+//            return Pair.of(countRes.getInt(1), brokers);
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return Pair.of(0, null);
+    }
+
+    public HttpResult<Void> export(String mobile, HttpServletResponse httpServletResponse) {
+
+        List<Broker> brokers = getListBroker(mobile);
+//        PreparedStatement brokerStatement = connectionFactory.getInitBrokerStatement();
+//            ResultSet resultSet = brokerStatement.executeQuery();
+//            while (resultSet.next()) {
+//                Broker broker = new Broker();
+//                brokers.add(broker);
+//                buildBroker(resultSet, broker);
+//                broker.setPassword(null);
+//            }
+        //excel标题
+        String[] title = {"用户", "电话", "银行账户", "直接收入", "一代收入", "二代收入", "团队收入", "商场收入", "乐研收入", "总收入", "级别", "注册时间"};
+
+        //excel文件名
+        String fileName = "推广者" + System.currentTimeMillis() + ".xls";
+
+        //sheet名
+        String sheetName = "推广者信息表";
+        String[][] content = new String[brokers.size()][title.length];
+        for (int i = 0; i < brokers.size(); i++) {
+            content[i] = new String[title.length];
+            Broker obj = brokers.get(i);
+            content[i][0] = obj.getName();
+            content[i][1] = obj.getMobile();
+            content[i][2] = obj.getAccount();
+            content[i][3] = String.valueOf(obj.getDirectIncome());
+            content[i][4] = String.valueOf(obj.getFirstIncome());
+            content[i][5] = String.valueOf(obj.getSecondIncome());
+            content[i][6] = String.valueOf(obj.getTeamIncome());
+            content[i][7] = String.valueOf(obj.getShopIncome());
+            content[i][8] = String.valueOf(obj.getResearchIncome());
+            content[i][9] = String.valueOf(obj.getIncome());
+            content[i][10] = obj.getLevel().getName();
+            content[i][11] = obj.getCreateDate().toString();
+        }
+
+        //创建HSSFWorkbook
+        HSSFWorkbook wb = ExcelUtil.getHSSFWorkbook(sheetName, title, content, null);
+
+        //响应到客户端
         try {
-            ResultSet resultSet = brokerStatement.executeQuery();
-            while (resultSet.next()) {
-                Broker broker = new Broker();
-                brokers.add(broker);
-                buildBroker(resultSet, broker);
-                broker.setPassword(null);
-            }
-            //excel标题
-            String[] title = {"用户", "电话", "银行账户", "直接收入", "一代收入", "二代收入", "团队收入", "商场收入", "乐研收入", "总收入", "级别", "注册时间"};
-
-            //excel文件名
-            String fileName = "推广者" + System.currentTimeMillis() + ".xls";
-
-            //sheet名
-            String sheetName = "推广者信息表";
-            String[][] content = new String[brokers.size()][title.length];
-            for (int i = 0; i < brokers.size(); i++) {
-                content[i] = new String[title.length];
-                Broker obj = brokers.get(i);
-                content[i][0] = obj.getName();
-                content[i][1] = obj.getMobile();
-                content[i][2] = obj.getAccount();
-                content[i][3] = String.valueOf(obj.getDirectIncome());
-                content[i][4] = String.valueOf(obj.getFirstIncome());
-                content[i][5] = String.valueOf(obj.getSecondIncome());
-                content[i][6] = String.valueOf(obj.getTeamIncome());
-                content[i][7] = String.valueOf(obj.getShopIncome());
-                content[i][8] = String.valueOf(obj.getResearchIncome());
-                content[i][9] = String.valueOf(obj.getIncome());
-                content[i][10] = obj.getLevel().getName();
-                content[i][11] = obj.getCreateDate().toString();
-            }
-
-            //创建HSSFWorkbook
-            HSSFWorkbook wb = ExcelUtil.getHSSFWorkbook(sheetName, title, content, null);
-
-            //响应到客户端
-            try {
-                this.setResponseHeader(httpServletResponse, fileName);
-                OutputStream os = httpServletResponse.getOutputStream();
-                wb.write(os);
-                os.flush();
-                os.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return HttpResult.failure(e.getMessage());
-            }
-        } catch (SQLException e) {
+            this.setResponseHeader(httpServletResponse, fileName);
+            OutputStream os = httpServletResponse.getOutputStream();
+            wb.write(os);
+            os.flush();
+            os.close();
+        } catch (Exception e) {
             e.printStackTrace();
             return HttpResult.failure(e.getMessage());
         }
@@ -349,12 +382,26 @@ public class BrokerService {
         }
     }
 
+    private static final MapperFactory mapperFactory = new DefaultMapperFactory.Builder().build();
+
     public HttpResult<List<Broker>> getTreeBroker(String phone, HttpServletResponse httpResponse) {
         List<Broker> brokers = calculateService.brokers;
         logger.info(JSON.toJSONString(brokers));
         Broker target = find(phone, brokers);
         if (target != null) {
-            return HttpResult.success(Lists.newArrayList(target));
+            Broker copy = mapperFactory.getMapperFacade().map(target, Broker.class);
+            if (!CollectionUtils.isEmpty(copy.getChildren())) {
+                copy.getChildren().forEach(c -> {
+                    if (!CollectionUtils.isEmpty(c.getChildren())) {
+                        c.getChildren().forEach(cc -> {
+                            cc.setChildren(null);
+                        });
+                    }
+                });
+            }
+            logger.info("copy:{}", JSON.toJSONString(copy));
+            logger.info("target:{}", JSON.toJSONString(target));
+            return HttpResult.success(Lists.newArrayList(copy));
         }
         return HttpResult.success(Lists.newArrayList());
     }
@@ -377,4 +424,39 @@ public class BrokerService {
         }
         return null;
     }
+
+
+    public static void main(String[] args) {
+        Broker a = new Broker();
+        a.setId(1L);
+        a.setOrderNums(99);
+        a.setSubOrderNums(0);
+        a.setLevel(Level.ordinary);
+
+        Broker b = new Broker();
+        b.setId(2L);
+        b.setOrderNums(0);
+        b.setSubOrderNums(0);
+        b.setLevel(Level.ordinary);
+
+        Broker c = new Broker();
+        c.setId(3L);
+        c.setOrderNums(0);
+        c.setSubOrderNums(0);
+        c.setLevel(Level.ordinary);
+
+        a.setChildren(Lists.newArrayList(b));
+        b.setChildren(Lists.newArrayList(c));
+
+        Broker map = mapperFactory.getMapperFacade().map(a, Broker.class);
+        System.out.println(JSON.toJSONString(map));
+        System.out.println(a == map);
+        System.out.println(a.getChildren().get(0) == map.getChildren().get(0));
+        System.out.println(a.getChildren().get(0).getChildren().get(0) == map.getChildren().get(0).getChildren().get(0));
+        map.getChildren().get(0).getChildren().get(0).setId(333L);
+        System.out.println(map.getChildren().get(0).getChildren().get(0).getId());
+        System.out.println(c.getId());
+
+    }
+
 }

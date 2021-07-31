@@ -25,12 +25,13 @@ public class BrokerController {
     @RequestMapping("/list")
     public HttpResult<Map<String, Object>> brokerList(@RequestParam("pageIndex") Integer pageIndex,
                                                       @RequestParam("pageSize") Integer pageSize,
-                                                      @RequestParam(value = "mobile", required = false) String mobile) {
+                                                      @RequestParam(value = "mobile") String mobile,
+                                                      @RequestParam(value = "search", required = false) String search) {
         Pair<Integer, List<Broker>> pair;
         if (StringUtils.isBlank(mobile)) {
-            pair = brokerService.getBrokers(pageSize, (pageIndex - 1) * pageSize);
+            pair = brokerService.getBrokers(pageSize, (pageIndex - 1) * pageSize, mobile);
         } else {
-            pair = brokerService.searchBrokers(pageSize, (pageIndex - 1) * pageSize, mobile);
+            pair = brokerService.searchBrokers(pageSize, (pageIndex - 1) * pageSize, mobile, search);
         }
         Map<String, Object> result = new HashMap<>();
         result.put("total", pair.getLeft());
@@ -38,9 +39,9 @@ public class BrokerController {
         return HttpResult.success(result);
     }
 
-    @RequestMapping("/export")
-    public HttpResult<Void> export(HttpServletResponse httpResponse) {
-        return brokerService.export(httpResponse);
+    @RequestMapping("/export/{phone}")
+    public HttpResult<Void> export(@PathVariable(value = "phone") String mobile, HttpServletResponse httpResponse) {
+        return brokerService.export(mobile, httpResponse);
     }
 
     @RequestMapping("/register")

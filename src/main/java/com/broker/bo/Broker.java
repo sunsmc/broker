@@ -2,6 +2,7 @@ package com.broker.bo;
 
 import com.broker.enums.Level;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@Accessors(chain = true)
 public class Broker {
 
     /**

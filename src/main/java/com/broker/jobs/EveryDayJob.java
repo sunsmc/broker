@@ -76,6 +76,18 @@ public class EveryDayJob implements ApplicationContextAware {
         }
     }
 
+    public static void main(String[] args) {
+        String url = "http://api.haidushutong.com/api-web/member/list?sign=" + Secret.sign();
+        ResponseEntity<String> getResult = new RestTemplate().getForEntity(url, String.class, new HashMap<>());
+        Result<MemberDO> result = JSON.parseObject(getResult.getBody(), new TypeReference<Result<MemberDO>>() {
+        });
+        logger.info("sync member:{}", JSON.toJSONString(result));
+         url = "http://api.haidushutong.com/api-web/order/list?sign=" + Secret.sign();
+         getResult = new RestTemplate().getForEntity(url, String.class, new HashMap<>());
+        Result<OrderDO> result1 = JSON.parseObject(getResult.getBody(), new TypeReference<Result<OrderDO>>() {
+        });
+        logger.info("sync order:{}", JSON.toJSONString(result1));
+    }
 
     public void syncOrder() {
 

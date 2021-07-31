@@ -25,4 +25,6 @@ public class BrokerVO {
     private String password;
 
     List<BrokerVO> children;
+
+    private String levelStr;
 }

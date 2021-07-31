@@ -30,20 +30,20 @@ public enum Level {
             BigDecimal.valueOf(120), BigDecimal.valueOf(19), BigDecimal.valueOf(14),
             BigDecimal.valueOf(100), BigDecimal.valueOf(16), BigDecimal.valueOf(13));
 
-    private Integer id;
-    private String name;
+    private final Integer id;
+    private final String name;
 
-    private BigDecimal team;
+    private final BigDecimal team;
 
-    private BigDecimal direct;
-    private BigDecimal first;
-    private BigDecimal second;
+    private final BigDecimal direct;
+    private final BigDecimal first;
+    private final BigDecimal second;
 
-    private BigDecimal haiDuDirect;
-    private BigDecimal haiDuFirst;
-    private BigDecimal haiDuSecond;
+    private final BigDecimal haiDuDirect;
+    private final BigDecimal haiDuFirst;
+    private final BigDecimal haiDuSecond;
 
-    private BigDecimal haiDuRenewalDirect;
-    private BigDecimal haiDuRenewalFirst;
-    private BigDecimal haiDuRenewalSecond;
+    private final BigDecimal haiDuRenewalDirect;
+    private final BigDecimal haiDuRenewalFirst;
+    private final BigDecimal haiDuRenewalSecond;
 }
