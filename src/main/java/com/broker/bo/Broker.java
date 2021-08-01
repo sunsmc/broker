@@ -34,8 +34,8 @@ public class Broker {
     //3>120
     private Integer subOrderNums = 0;
 
-    private Level level = Level.ordinary;
-    private String levelStr = Level.ordinary.getName();
+    private Level level = Level.OA;
+    private String levelStr = Level.OA.getName();
 
     private BigDecimal income = BigDecimal.ZERO;
     private BigDecimal directIncome = BigDecimal.ZERO;

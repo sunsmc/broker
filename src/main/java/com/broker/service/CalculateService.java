@@ -101,19 +101,19 @@ public class CalculateService {
         a.setId(1L);
         a.setOrderNums(99);
         a.setSubOrderNums(0);
-        a.setLevel(Level.ordinary);
+        a.setLevel(Level.OA);
 
         Broker b = new Broker();
         b.setId(2L);
         b.setOrderNums(0);
         b.setSubOrderNums(0);
-        b.setLevel(Level.ordinary);
+        b.setLevel(Level.OA);
 
         Broker c = new Broker();
         c.setId(3L);
         c.setOrderNums(0);
         c.setSubOrderNums(0);
-        c.setLevel(Level.ordinary);
+        c.setLevel(Level.OA);
 
         a.setChildren(Lists.newArrayList(b));
         b.setChildren(Lists.newArrayList(c));
@@ -164,27 +164,27 @@ public class CalculateService {
 
     private void upgradeLevel(Broker broker) {
         switch (broker.getLevel()) {
-            case ordinary:
+            case OA:
                 if (broker.getOrderNums() >= 80 && broker.getChildren().stream().filter(cb -> cb.getSubOrderNums() >= 120).count() >= 3) {
-                    broker.setLevel(Level.director);
+                    broker.setLevel(Level.BE);
                 }
                 break;
-            case director:
+            case BE:
                 if (broker.getOrderNums() >= 160 && countLevel(broker, 0) >= 3) {
-                    broker.setLevel(Level.manager);
+                    broker.setLevel(Level.BM);
                 }
                 break;
-            case manager:
+            case BM:
                 if (broker.getOrderNums() >= 240 && countLevel(broker, 0) >= 3) {
-                    broker.setLevel(Level.chairman);
+                    broker.setLevel(Level.BD);
                 }
                 break;
-            case chairman:
+            case BD:
                 if (broker.getOrderNums() >= 300 && countLevel(broker, 0) >= 3) {
-                    broker.setLevel(Level.partner);
+                    broker.setLevel(Level.CF);
                 }
                 break;
-            case partner:
+            case CF:
                 break;
         }
     }

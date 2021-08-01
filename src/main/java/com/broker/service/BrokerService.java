@@ -3,15 +3,12 @@ package com.broker.service;
 import com.alibaba.fastjson.JSON;
 import com.broker.bo.HttpResult;
 import com.broker.bo.Broker;
-import com.broker.bo.OrderEvent;
 import com.broker.dao.ConnectionFactory;
 import com.broker.enums.Level;
-import com.broker.enums.OrderType;
 import com.broker.utils.ExcelUtil;
 import com.broker.utils.QrCodeUtils;
 import com.broker.vo.BrokerVO;
 import com.google.zxing.WriterException;
-import lombok.extern.slf4j.Slf4j;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -435,19 +431,19 @@ public class BrokerService {
         a.setId(1L);
         a.setOrderNums(99);
         a.setSubOrderNums(0);
-        a.setLevel(Level.ordinary);
+        a.setLevel(Level.OA);
 
         Broker b = new Broker();
         b.setId(2L);
         b.setOrderNums(0);
         b.setSubOrderNums(0);
-        b.setLevel(Level.ordinary);
+        b.setLevel(Level.OA);
 
         Broker c = new Broker();
         c.setId(3L);
         c.setOrderNums(0);
         c.setSubOrderNums(0);
-        c.setLevel(Level.ordinary);
+        c.setLevel(Level.OA);
 
         a.setChildren(Lists.newArrayList(b));
         b.setChildren(Lists.newArrayList(c));
