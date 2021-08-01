@@ -83,6 +83,7 @@ public class BrokerService {
                 insertBrokerStatement.setString(3, broker.getAccount());
                 insertBrokerStatement.setString(4, broker.getPassword());
                 insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
+                insertBrokerStatement.setString(6, broker.getAccountType());
                 insertBrokerStatement.execute();
                 ResultSet generatedKeys = insertBrokerStatement.getGeneratedKeys();
                 if (generatedKeys.next()) {
@@ -103,6 +104,7 @@ public class BrokerService {
                 insertBrokerStatement.setString(4, broker.getPassword());
                 insertBrokerStatement.setString(5, UUID.randomUUID().toString().substring(0, 8));
                 insertBrokerStatement.setLong(6, broker.getParentId());
+                insertBrokerStatement.setString(7, broker.getAccountType());
                 insertBrokerStatement.execute();
                 ResultSet generatedKeys = insertBrokerStatement.getGeneratedKeys();
                 if (generatedKeys.next()) {
@@ -184,6 +186,7 @@ public class BrokerService {
         broker.setShopIncome(resultSet.getBigDecimal("shop_income"));
         broker.setResearchIncome(resultSet.getBigDecimal("research_income"));
         broker.setCreateDate(resultSet.getDate("create_date"));
+        broker.setAccountType(resultSet.getString("account_type"));
         broker.setChildren(Lists.newArrayList());
     }
 
@@ -249,7 +252,7 @@ public class BrokerService {
 //                broker.setPassword(null);
 //            }
         //excel标题
-        String[] title = {"用户", "电话", "银行账户", "直接收入", "一代收入", "二代收入", "团队收入", "商场收入", "乐研收入", "总收入", "级别", "注册时间"};
+        String[] title = {"用户", "电话", "银行账户", "直接收入", "一代收入", "二代收入", "团队收入", "商场收入", "乐研收入", "总收入", "级别", "注册时间", "银行"};
 
         //excel文件名
         String fileName = "推广者" + System.currentTimeMillis() + ".xls";
@@ -272,6 +275,7 @@ public class BrokerService {
             content[i][9] = String.valueOf(obj.getIncome());
             content[i][10] = obj.getLevel().getName();
             content[i][11] = obj.getCreateDate().toString();
+            content[i][12] = obj.getAccountType();
         }
 
         //创建HSSFWorkbook

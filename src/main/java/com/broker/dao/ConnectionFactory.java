@@ -71,8 +71,8 @@ public class ConnectionFactory {
             initBrokerStatement = brokerConn.prepareStatement("select * from broker");
             queryBrokerStatement = brokerConn.prepareStatement("select * from broker where mobile=? ");
             queryBrokerById = brokerConn.prepareStatement("select * from broker where id=? ");
-            insertBrokerStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code,parent_id) values (?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
-            insertBrokerNoParentStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code) values (?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+            insertBrokerStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code,parent_id,account_type) values (?,?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
+            insertBrokerNoParentStatement = brokerConn.prepareStatement("insert into broker (name,mobile,account,password,referrer_code,account_type) values (?,?,?,?,?,?)", Statement.RETURN_GENERATED_KEYS);
             queryBrokerLimitStatement = brokerConn.prepareStatement("select * from broker limit ?,?");
             queryBrokerByMobileLimitStatement = brokerConn.prepareStatement("select * from broker where mobile like concat('%',?,'%') limit ?,?");
             countBrokerStatement = brokerConn.prepareStatement("select count(*) from broker");

@@ -21,6 +21,7 @@ public class Broker {
     private String name;
     private String mobile;
     private String account;
+    private String accountType;
     private String referrerCode;
     private String password;
     private Date createDate;

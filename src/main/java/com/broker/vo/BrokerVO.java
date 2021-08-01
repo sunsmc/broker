@@ -24,6 +24,8 @@ public class BrokerVO {
     @NonNull
     private String password;
 
+    private String accountType;
+
     List<BrokerVO> children;
 
     private String levelStr;
