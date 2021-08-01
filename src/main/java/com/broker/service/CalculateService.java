@@ -217,7 +217,7 @@ public class CalculateService {
         // 计算下属中，最大的团队收益人
         BigDecimal subTeam = res.stream().map(Broker::getLevel).map(Level::getTeam).max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
         // 计算自己可得的差额收益
-        BigDecimal income = orderAmountTotal.multiply(team.subtract(subTeam));
+        BigDecimal income = orderAmountTotal.multiply(team.subtract(subTeam)).setScale(2, BigDecimal.ROUND_HALF_UP);
         broker.setTeamIncome(broker.getTeamIncome().add(income));
     }
 
@@ -227,7 +227,7 @@ public class CalculateService {
         boolean find = false;
         if (Objects.equals(broker.getId(), subBrokerId)) {
             find = true;
-        } else {
+        } else if (!CollectionUtils.isEmpty(broker.getChildren())) {
             List<Broker> children = broker.getChildren();
             for (int i = 0; i < children.size() && !find; i++) {
                 find = createLine(res, children.get(i), subBrokerId);
@@ -241,9 +241,6 @@ public class CalculateService {
 
     private void incrementIncome(Broker broker, OrderEvent orderEvent, int orders) {
 
-        if (orders > 2) {
-            return;
-        }
         BigDecimal orderAmountTotal = orderEvent.getOrderAmountTotal();
         Level level = broker.getLevel();
         if (OrderType.HAIDUJIAOYU.name().equalsIgnoreCase(orderEvent.getType())) {
@@ -253,20 +250,16 @@ public class CalculateService {
                     // 本人订单
                     case 0:
                         broker.setDirectIncome(broker.getDirectIncome().add(level.getHaiDuDirect()));
-                        // 本人无团队收益
-                        // 0,1,2才有收益，其他默认只有团队收益
                         buildTeamIncome(broker, orderEvent, 0);
                         break;
                     // 本人上1级
                     case 1:
                         broker.setFirstIncome(broker.getFirstIncome().add(level.getHaiDuFirst()));
-                        // 0,1,2才有收益，其他默认只有团队收益
                         buildTeamIncome(broker, orderEvent, 1);
                         break;
                     // 本人上2级
                     case 2:
                         broker.setSecondIncome(broker.getSecondIncome().add(level.getHaiDuSecond()));
-                        // 0,1,2才有收益，其他默认只有团队收益
                         buildTeamIncome(broker, orderEvent, 2);
                         break;
                     default:
